@@ -10,7 +10,7 @@
        →  calls window.renderDashboard() to refresh the attendance table
    ============================================================================= */
 
-const SYNC_URL    = 'https://attendease-mcp.onrender.com/api/db/sync';
+const SYNC_URL    = 'https://attendease-messenger.onrender.com/api/db/sync';
 const DEBOUNCE_MS = 1500;
 
 // ── 0. Internal State ────────────────────────────────────────────────────────
