@@ -2,27 +2,29 @@
    AttendEase — Cloud Synchronization Interface
    Target Proxy: https://attendease-sync.onrender.com/sync
 
-   Behavior:
-   This engine hijacks localStorage.setItem to detect changes.
-   It debounces updates to batch rapid writes (like profile pic uploads).
-   It pulls global state periodically and DEEP-MERGES to ensure
-   cross-device consistency without losing local attendance scan data.
+   Cross-device flow:
+     Student scans QR (phone)  →  db.js saves to localStorage
+       →  setItem intercepted  →  _triggerSync() pushes to Render server
+     Teacher dashboard (PC)    →  polls Render every 2s
+       →  deep-merges incoming sessions into localStorage
+       →  calls window.renderDashboard() to refresh the attendance table
    ============================================================================= */
 
 const SYNC_URL    = 'https://attendease-sync.onrender.com/sync';
-const DEBOUNCE_MS = 1500;   // 1.5s debounce for rapid writes
+const DEBOUNCE_MS = 1500;
 
 // ── 0. Internal State ────────────────────────────────────────────────────────
 const originalSetItem = Storage.prototype.setItem;
-let syncTimeout = null;
-let _isSyncing  = false;   // guard to prevent re-entrant syncs
+let   _pushTimeout  = null;
+let   _isPushing    = false;   // push-only guard (does NOT block pulls)
+let   _isPulling    = false;   // pull-only guard (prevents concurrent pulls)
 
-// ── 1. Push — send local state to cloud ──────────────────────────────────────
+// ── 1. Push — send local state to Render after debounce ──────────────────────
 function _triggerSync() {
-    if (syncTimeout) clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(async () => {
-        if (_isSyncing) return;
-        _isSyncing = true;
+    if (_pushTimeout) clearTimeout(_pushTimeout);
+    _pushTimeout = setTimeout(async () => {
+        if (_isPushing) return;
+        _isPushing = true;
         try {
             const state = {};
             for (let i = 0; i < localStorage.length; i++) {
@@ -31,39 +33,39 @@ function _triggerSync() {
                     state[k] = _stripHeavyFields(k, localStorage.getItem(k));
                 }
             }
-            const newVersion = Date.now().toString();
-            state['__sync_version'] = newVersion;
-            originalSetItem.call(localStorage, '__sync_version', newVersion);
+            const syncVer = Date.now().toString();
+            state['__sync_version'] = syncVer;
+            originalSetItem.call(localStorage, '__sync_version', syncVer);
 
             await fetch(SYNC_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ state })
+                body: JSON.stringify({ state }),
             });
+            console.log('[cloud-sync] Pushed at', new Date().toLocaleTimeString());
         } catch (err) {
             console.warn('[cloud-sync] Push failed:', err);
         } finally {
-            _isSyncing = false;
+            _isPushing = false;
         }
     }, DEBOUNCE_MS);
 }
 
 /**
  * Strips heavy base64 blobs before sending to cloud (saves DB space).
- * Profile pictures and announcement file attachments stay LOCAL only.
+ * Attendance session records are kept 100% intact — only profile pics
+ * and announcement file attachments are stripped.
  */
 function _stripHeavyFields(key, value) {
     if (!value) return value;
     try {
         const parsed = JSON.parse(value);
 
-        // Strip profile pictures
         if (parsed.profilePic) {
             const { profilePic, ...rest } = parsed;
             return JSON.stringify(rest);
         }
 
-        // Strip announcement file blobs but keep session attendance intact
         if (key.startsWith('attendease_teacher_')) {
             const rest = { ...parsed };
             if (Array.isArray(rest.announcements)) {
@@ -72,11 +74,11 @@ function _stripHeavyFields(key, value) {
                     attachments: (a.attachments || []).map(att => ({
                         name: att.name,
                         type: att.type,
-                        // dataUrl intentionally omitted — kept local only
+                        // dataUrl stripped — kept local only
                     })),
                 }));
             }
-            // NOTE: sessions (attendance data) are kept fully intact here
+            // ⚠ sessions (timeIn / timeOut / status) are NEVER stripped
             return JSON.stringify(rest);
         }
 
@@ -86,24 +88,28 @@ function _stripHeavyFields(key, value) {
     }
 }
 
-// ── Intercept localStorage.setItem to auto-push on every write ───────────────
+// ── Intercept localStorage.setItem → auto-push on every attendance write ──────
 Storage.prototype.setItem = function (key, value) {
     originalSetItem.apply(this, arguments);
-    // Only push for app-managed keys, skip internal sync markers
     if (key && key.startsWith('attendease_') && key !== '__sync_version') {
         _triggerSync();
     }
 };
 
-// ── 2. Pull — fetch cloud state and SMART-MERGE into local storage ────────────
+// ── 2. Pull — fetch cloud state and deep-merge into localStorage ──────────────
 window.initCloudDb = async function () {
-    if (_isSyncing) return;
+    // IMPORTANT: push and pull use SEPARATE guards so they never block each other
+    if (_isPulling) return;
+    _isPulling = true;
     try {
         const res = await fetch(`${SYNC_URL}?t=${Date.now()}`);
-        if (!res.ok) return;
-        const data = await res.json();
+        if (!res.ok) { _isPulling = false; return; }
 
-        if (!data.ok || !data.state || Object.keys(data.state).length === 0) return;
+        const data = await res.json();
+        if (!data.ok || !data.state || Object.keys(data.state).length === 0) {
+            _isPulling = false;
+            return;
+        }
 
         let changed = false;
 
@@ -112,7 +118,7 @@ window.initCloudDb = async function () {
 
             const localStr = localStorage.getItem(key);
 
-            // No local entry at all — just write remote
+            // Key doesn't exist locally at all → just write it
             if (!localStr) {
                 originalSetItem.call(localStorage, key, value);
                 changed = true;
@@ -123,22 +129,17 @@ window.initCloudDb = async function () {
                 const local  = JSON.parse(localStr);
                 const remote = JSON.parse(value);
 
-                // ── Special handling for teacher data ────────────────────────
                 if (key.startsWith('attendease_teacher_')) {
-                    // DEEP MERGE sessions: remote takes precedence per student
-                    // record, but we NEVER lose data that only exists locally
+                    // Deep-merge: never lose a timeIn/timeOut by overwriting with null
                     const mergedSessions = _mergeSessions(
                         local.sessions  || {},
                         remote.sessions || {}
                     );
 
-                    // Build merged object: start from remote, overlay merged sessions
                     const merged = {
                         ...remote,
                         sessions: mergedSessions,
-                        // Preserve local-only heavy fields
                         profilePic: local.profilePic || remote.profilePic,
-                        // Preserve local announcement attachments (blobs)
                         announcements: _mergeAnnouncements(
                             local.announcements  || [],
                             remote.announcements || []
@@ -153,7 +154,7 @@ window.initCloudDb = async function () {
                     continue;
                 }
 
-                // ── Default: remote wins, but preserve local heavy fields ────
+                // Default: remote wins, preserve local blob fields
                 if (local.profilePic) remote.profilePic = local.profilePic;
                 const mergedStr = JSON.stringify(remote);
                 if (localStr !== mergedStr) {
@@ -168,75 +169,72 @@ window.initCloudDb = async function () {
             }
         }
 
-        // Notify the teacher dashboard to re-render if data changed
-        if (changed && typeof window.renderDashboard === 'function') {
+        // Always call renderDashboard when pull completes — even if no change
+        // detected locally, the UI may be stale due to in-memory vs storage drift.
+        if (typeof window.renderDashboard === 'function') {
             window.renderDashboard();
+        }
+
+        if (changed) {
+            console.log('[cloud-sync] Pulled new data at', new Date().toLocaleTimeString());
         }
     } catch (err) {
         console.warn('[cloud-sync] Pull failed:', err);
+    } finally {
+        _isPulling = false;
     }
 };
 
+// ── Session deep-merge ────────────────────────────────────────────────────────
 /**
- * Deep-merge two session maps.
- * Key format: "CLASSCODE_YYYY-MM-DD"  →  array of student attendance records
- *
- * Strategy:
- *   • For each session key present in EITHER local or remote, merge the arrays.
- *   • A student record in REMOTE always wins (teacher scan, cloud write) —
- *     EXCEPT we never overwrite a real timeIn/timeOut with null.
+ * Merge two "sessions" objects (keyed by "CLASSCODE_YYYY-MM-DD").
+ * For each session, merge per-student records so that:
+ *   • A real timeIn/timeOut is NEVER overwritten with null
+ *   • Remote status/remark wins otherwise
  */
 function _mergeSessions(local, remote) {
     const merged = {};
     const allKeys = new Set([...Object.keys(local), ...Object.keys(remote)]);
 
-    allKeys.forEach(key => {
-        const localRecs  = local[key]  || [];
-        const remoteRecs = remote[key] || [];
+    allKeys.forEach(sKey => {
+        const localRecs  = local[sKey]  || [];
+        const remoteRecs = remote[sKey] || [];
 
-        // Index by studentId for O(1) lookup
-        const localMap = {};
-        localRecs.forEach(r => { localMap[r.studentId] = r; });
-
+        const localMap  = {};
+        localRecs.forEach(r  => { localMap[r.studentId]  = r; });
         const remoteMap = {};
         remoteRecs.forEach(r => { remoteMap[r.studentId] = r; });
 
-        const allStudentIds = new Set([
-            ...localRecs.map(r => r.studentId),
+        const allIds = new Set([
+            ...localRecs.map(r  => r.studentId),
             ...remoteRecs.map(r => r.studentId),
         ]);
 
-        const mergedRecs = [];
-        allStudentIds.forEach(sid => {
+        merged[sKey] = [];
+        allIds.forEach(sid => {
             const l = localMap[sid];
             const r = remoteMap[sid];
 
-            if (!l) { mergedRecs.push({ ...r }); return; }
-            if (!r) { mergedRecs.push({ ...l }); return; }
+            if (!l)   { merged[sKey].push({ ...r }); return; }
+            if (!r)   { merged[sKey].push({ ...l }); return; }
 
-            // Both exist — take remote as base but preserve non-null local times
-            mergedRecs.push({
-                ...r,
-                timeIn:  r.timeIn  || l.timeIn  || null,
-                timeOut: r.timeOut || l.timeOut  || null,
-                excuse:  r.excuse  || l.excuse   || null,
-                excuseFileName:   r.excuseFileName   || l.excuseFileName   || '',
+            merged[sKey].push({
+                ...r,                                // remote wins for metadata
+                timeIn:            r.timeIn            || l.timeIn            || null,
+                timeOut:           r.timeOut           || l.timeOut           || null,
+                excuse:            r.excuse            || l.excuse            || null,
+                excuseFileName:    r.excuseFileName    || l.excuseFileName    || '',
                 excuseSubmittedAt: r.excuseSubmittedAt || l.excuseSubmittedAt || '',
-                remark:  r.remark  || l.remark   || '',
-                location: r.location || l.location || null,
+                remark:            r.remark            || l.remark            || '',
+                location:          r.location          || l.location          || null,
             });
         });
-
-        merged[key] = mergedRecs;
     });
 
     return merged;
 }
 
-/**
- * Merge announcement arrays by id.
- * Remote announcement metadata wins, but local dataUrl blobs are preserved.
- */
+// ── Announcement merge ────────────────────────────────────────────────────────
 function _mergeAnnouncements(local, remote) {
     const localMap = {};
     local.forEach(a => { localMap[a.id] = a; });
@@ -245,7 +243,6 @@ function _mergeAnnouncements(local, remote) {
         const localAnn = localMap[remoteAnn.id];
         if (!localAnn) return remoteAnn;
 
-        // Restore local attachment blobs stripped during push
         const mergedAttachments = (remoteAnn.attachments || []).map((att, i) => {
             const localAtt = localAnn.attachments && localAnn.attachments[i];
             return localAtt ? { ...att, dataUrl: localAtt.dataUrl } : att;
@@ -254,7 +251,7 @@ function _mergeAnnouncements(local, remote) {
     });
 }
 
-// ── 3. Background Polling — every 2s active / 10s hidden tab ─────────────────
+// ── 3. Background Polling — 2s active tab / 10s hidden tab ───────────────────
 const POLL_ACTIVE_MS = 2000;
 const POLL_HIDDEN_MS = 10000;
 

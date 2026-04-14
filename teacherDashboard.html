@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AttendEase  Teacher</title>
-    <script src="cloud-sync.js?v=1.2"></script>
-    <script src="db.js?v=1.2"></script>
+    <script src="cloud-sync.js?v=1.3"></script>
+    <script src="db.js?v=1.3"></script>
     <link rel="stylesheet" href="teacherDashboard.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -727,7 +727,7 @@
 
             populateClassDropdowns();
             currentClassCode = document.getElementById('classSelect').value;
-            currentDate = '2026-04-12';
+            currentDate = defDate;   // use today's date, not a hardcoded one
             loadAttendanceSession();
             renderReportPreview();
             renderClasses();
