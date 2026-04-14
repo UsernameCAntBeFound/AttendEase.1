@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AttendEase â€“ Student</title>
-    <script src="cloud-sync.js?v=1.8"></script>
-    <script src="db.js?v=1.8"></script>
+    <script src="cloud-sync.js?v=1.9"></script>
+    <script src="db.js?v=1.9"></script>
     <link rel="stylesheet" href="studentDashboard.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -609,15 +609,16 @@
 
             classes.forEach(cls => {
                 let present = 0, absent = 0, late = 0, excused = 0, total = 0;
+                const absentRecords = [];
 
                 Object.entries(td.sessions || {}).forEach(([key, records]) => {
-                    const [classCode] = key.split('_');
+                    const [classCode, sessionDate] = key.split('_');
                     if (classCode !== cls.code) return;
                     records.forEach(r => {
                         if (r.studentId === session.uid) {
                             total++;
                             if (r.status === 'present') present++;
-                            else if (r.status === 'absent') absent++;
+                            else if (r.status === 'absent') { absent++; absentRecords.push(sessionDate); }
                             else if (r.status === 'late') late++;
                             else if (r.status === 'excused') excused++;
                         }
@@ -628,9 +629,24 @@
                 const rate = total > 0 ? Math.round((attended / total) * 100) : 0;
                 const rateColor = rate >= 80 ? 'var(--green)' : rate >= 60 ? 'var(--yellow)' : total > 0 ? 'var(--red)' : 'var(--text-muted)';
 
-                const today = DB.getTodayDate();
-                const existingExcuse = DB.getStudentExcuse(session.uid, cls.code, today);
-                const hasExcuseToday = !!(existingExcuse && existingExcuse.dataUrl);
+                // Build per-absence rows with excuse button per date
+                let absentSection = '';
+                if (absentRecords.length > 0) {
+                    absentSection += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">';
+                    absentRecords.forEach(date => {
+                        const existingExcuse = DB.getStudentExcuse(session.uid, cls.code, date);
+                        const hasExcuse = !!(existingExcuse && existingExcuse.dataUrl);
+                        const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US',
+                            { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                        absentSection += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:rgba(255,80,80,0.08);border-radius:8px;">
+                                <span style="font-size:12px;color:var(--text-muted);">Absent · ${displayDate}</span>
+                                ${hasExcuse
+                                    ? '<span style=\"font-size:11px;font-weight:600;color:var(--green);white-space:nowrap;\">\u2713 Submitted</span>'
+                                    : `<button class="std-excuse-inline-btn" onclick="openStdExcuseModal('${cls.code}','${date}','${cls.name}')" style="font-size:11px;padding:4px 10px;white-space:nowrap;">Excuse Letter</button>`
+                                }</div>`;
+                    });
+                    absentSection += '</div>';
+                }
 
                 const card = document.createElement('div');
                 card.className = 'class-attendance-card';
@@ -640,20 +656,12 @@
                             <span class="class-code-badge">${cls.code}</span>
                             <div class="class-details">
                                 <span class="class-name">${cls.name}</span>
-                                <span class="class-schedule">${cls.schedule || 'â€”'}</span>
+                                <span class="class-schedule">${cls.schedule || '\u2013'}</span>
                             </div>
                         </div>
-                        <div class="class-header-right">
-                            <div class="class-rate" style="color: ${rateColor}">${total > 0 ? rate + '%' : 'â€”'}</div>
-                            <button
-                                id="excuse-card-${cls.code}"
-                                class="std-excuse-inline-btn ${hasExcuseToday ? 'submitted' : ''}"
-                                onclick="openStdExcuseModal('${cls.code}', '${today}', '${cls.name}')"
-                            >
-                                ${hasExcuseToday ? 'Submitted' : 'Excuse Letter'}
-                            </button>
-                        </div>
+                        <div class="class-rate" style="color: ${rateColor}">${total > 0 ? rate + '%' : '\u2013'}</div>
                     </div>
+                    ${absentSection}
                 `;
                 container.appendChild(card);
             });
@@ -711,15 +719,26 @@
 
         async function startCamera() {
             try {
-                if (navigator.geolocation && currentMode === 'in') {
+                // Pre-fetch location BEFORE starting camera so it's ready instantly on scan
+                // This eliminates the 5s blocking wait that was making Time In slow.
+                if (navigator.geolocation) {
+                    // Eagerly get a fix right now (non-blocking, fires in background)
+                    navigator.geolocation.getCurrentPosition(
+                        pos => { _lastKnownLocation = pos.coords; },
+                        err => { console.warn('Location pre-fetch error:', err); },
+                        { enableHighAccuracy: true, maximumAge: 30000, timeout: 8000 }
+                    );
+                    // Also keep watching so location stays fresh
                     _geoWatchId = navigator.geolocation.watchPosition(
                         pos => { _lastKnownLocation = pos.coords; },
-                        err => { console.warn('Location Error:', err); },
-                        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+                        err => { console.warn('Location watch error:', err); },
+                        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
                     );
                 }
 
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
                 const video = document.getElementById('video');
                 video.srcObject = stream;
                 video.style.display = 'block';
@@ -837,15 +856,16 @@
             }
 
             if (currentMode === 'in') {
+                // Location is pre-fetched during startCamera() — use it instantly, no waiting
                 if (_lastKnownLocation) {
-                    showToast('📍 Location secured ✔');
                     recordWithLocation(_lastKnownLocation);
                 } else if (navigator.geolocation) {
-                    showToast('📡 Scanning Location...');
+                    // Fallback: still try to get it quickly, but with a short 2s timeout
+                    showToast('📡 Getting location...');
                     navigator.geolocation.getCurrentPosition(
-                        pos => { showToast('📍 Location secured ✔'); recordWithLocation(pos.coords); },
-                        err => { console.warn(err); showToast('❌ Location error. Recording scan only.'); recordWithLocation(null); },
-                        { timeout: 5000, maximumAge: 0, enableHighAccuracy: true }
+                        pos => { recordWithLocation(pos.coords); },
+                        err => { recordWithLocation(null); },
+                        { timeout: 2000, maximumAge: 60000, enableHighAccuracy: false }
                     );
                 } else {
                     recordWithLocation(null);
@@ -896,15 +916,25 @@
             if (!filtered.length) { feed.innerHTML = '<p class="news-empty">No announcements yet</p>'; return; }
 
             const teacherName = `${teacher.firstname} ${teacher.lastname}`.trim();
-            feed.innerHTML = filtered.map(a => `
+            feed.innerHTML = filtered.map(a => {
+                // Render attachment images if present
+                const imgs = (a.attachments || [])
+                    .filter(att => att.dataUrl)
+                    .map(att => `<img src="${att.dataUrl}" alt="${att.name || 'attachment'}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`);
+                const date = a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+                return `
                 <div class="sn-news-card">
                     <div class="sn-card-header">
                         <span class="sn-poster-name">${teacherName}</span>
                         <span class="sn-class-badge">${classMap[a.classCode] || a.classCode}</span>
                     </div>
-                    <div class="sn-card-body"><div class="sn-caption">${a.caption}</div></div>
-                </div>
-            `).join('');
+                    <div class="sn-card-body">
+                        <div class="sn-caption">${a.caption}</div>
+                        ${imgs.join('')}
+                        ${date ? `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">${date}</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         function setNewsFilter(code) { newsFilterClass = code; loadStudentNews(); }
