@@ -499,7 +499,7 @@
                 <p style="font-size:11px;opacity:.5;margin-top:6px">Click image to view full size</p>
             </div>
 
-            <!-- PDF viewer chip -->
+            <!-- Document viewer chip -->
             <div id="excuseViewPdfWrap" hidden
                 style="display:flex;align-items:center;gap:12px;padding:18px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:12px;cursor:pointer"
                 onclick="downloadCurrentExcuse()">
@@ -514,7 +514,7 @@
                     <div id="excuseViewPdfName"
                         style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                     </div>
-                    <div style="font-size:12px;opacity:.6;margin-top:3px">Click to download PDF</div>
+                    <div style="font-size:12px;opacity:.6;margin-top:3px">Click to download Document</div>
                 </div>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     style="opacity:.5;flex-shrink:0">
@@ -888,10 +888,16 @@
             list.forEach((s, i) => {
                 // Find the real index in currentSessionStudents for this record
                 const realIdx = currentSessionStudents.findIndex(r => r.studentId === s.studentId);
+                const studentUser = DB.getAll().find(u => u.uid === s.studentId);
+                const extraData = studentUser ? DB.getStudentData(studentUser.id) : null;
+                const picHtml = (extraData && extraData.profilePic)
+                    ? `<img class="tbl-avatar student" src="${extraData.profilePic}" alt="Avatar" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:10px;">`
+                    : '<div class="tbl-avatar student" style="width:32px;height:32px;border-radius:50%;background:#e0e7ff;color:#4f46e5;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;vertical-align:middle;margin-right:10px;">' + (s.name.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2)) + '</div>';
+
                 tbody.innerHTML += `
         <tr id="row-${realIdx}" class="${s.status}">
             <td class="row-num">${i + 1}</td>
-            <td class="student-name">${s.name}</td>
+            <td class="student-name" style="text-align:left;">${picHtml}${s.name}</td>
             <td class="student-id">${s.studentId}</td>
             <td>${s.timeIn ? `<span class="time-badge in">${s.timeIn}</span>` : '<span class="no-action"></span>'}</td>
             <td>${s.timeOut ? `<span class="time-badge out">${s.timeOut}</span>` : '<span class="no-action"></span>'}</td>
@@ -2121,7 +2127,7 @@
                 if (data.ok) {
                     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Sent';
                     btn.className = 'notify-btn sent';
-                    showToast('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> ' + data.message);
+                    showToast('✓ Notified! ' + data.message);
                 } else {
                     btn.textContent = ' No PSID';
                     btn.className = 'notify-btn failed';
@@ -2139,7 +2145,7 @@
         async function notifyAllAbsent() {
             const targets = currentSessionStudents.filter(s => s.status === 'absent' || s.status === 'late');
             if (!targets.length) { showToast('No absent or late students to notify.'); return; }
-            showToast('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Sending ' + targets.length + ' notification(s)');
+            showToast('✓ Sending ' + targets.length + ' notification(s)');
             for (const s of targets) {
                 const idx = currentSessionStudents.indexOf(s);
                 await notifyGuardian(idx);

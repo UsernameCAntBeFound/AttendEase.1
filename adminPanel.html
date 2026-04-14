@@ -471,6 +471,10 @@
                     <label>Email Address</label>
                     <input type="email" id="edit-email">
                 </div>
+                <div class="form-group" id="edit-guardian-group" style="display:none;">
+                    <label>Guardian Messenger Link <span class="optional">(optional)</span></label>
+                    <input type="url" id="edit-guardianFbLink" placeholder="https://m.me/... or Facebook URL">
+                </div>
             </div>
 
             <!-- Credentials tab -->
@@ -682,19 +686,25 @@
             animateCount('totalTeachers', teachers.length);
             animateCount('recentCount', recent.length);
 
-            // Recent list (last 5 active)
             const list = document.getElementById('recentList');
             const last5 = [...activeUsers].reverse().slice(0, 5);
-            list.innerHTML = last5.map(u => `
+            list.innerHTML = last5.map(u => {
+                let extraData = null;
+                if (u.role === 'student') extraData = DB.getStudentData(u.id);
+                if (u.role === 'teacher') extraData = DB.getTeacherData(u.id);
+                const picHtml = (extraData && extraData.profilePic) 
+                    ? `<img class="recent-avatar ${u.role}" src="${extraData.profilePic}" alt="Avatar" style="object-fit:cover;">`
+                    : `<div class="recent-avatar ${u.role}">${initials(u)}</div>`;
+                return `
             <div class="recent-item">
-                <div class="recent-avatar ${u.role}">${initials(u)}</div>
+                ${picHtml}
                 <div class="recent-info">
                     <div class="recent-name">${u.firstname} ${u.lastname}</div>
                     <div class="recent-meta">${u.uid} &bull; ${u.created}</div>
                 </div>
                 <span class="role-badge ${u.role}">${capitalize(u.role)}</span>
             </div>
-        `).join('');
+        `}).join('');
         }
 
         function animateCount(id, target) {
@@ -747,12 +757,19 @@
                     `;
                 }
 
+                let extraData = null;
+                if (u.role === 'student') extraData = DB.getStudentData(u.id);
+                if (u.role === 'teacher') extraData = DB.getTeacherData(u.id);
+                const picHtml = (extraData && extraData.profilePic) 
+                    ? `<img class="tbl-avatar ${u.role}" src="${extraData.profilePic}" alt="Avatar" style="object-fit:cover; border-radius:50%;">`
+                    : `<div class="tbl-avatar ${u.role}">${initials(u)}</div>`;
+
                 tbody.innerHTML += `
             <tr>
                 <td class="row-num">${i + 1}</td>
                 <td>
                     <div class="user-cell">
-                        <div class="tbl-avatar ${u.role}">${initials(u)}</div>
+                        ${picHtml}
                         <div>
                             <div class="user-name">${u.firstname} ${u.lastname}</div>
                         </div>
@@ -811,6 +828,17 @@
             document.getElementById('edit-username').value = u.username;
             document.getElementById('edit-password').value = '';
             document.getElementById('edit-confirm').value = '';
+
+            const guardianGroup = document.getElementById('edit-guardian-group');
+            if (guardianGroup) {
+                if (u.role === 'student') {
+                    guardianGroup.style.display = 'block';
+                    const sd = DB.getStudentData(u.id);
+                    document.getElementById('edit-guardianFbLink').value = sd.guardianFbLink || '';
+                } else {
+                    guardianGroup.style.display = 'none';
+                }
+            }
             switchModalTab('info');
             document.getElementById('editModal').hidden = false;
         }
@@ -851,6 +879,13 @@
             if (pw) changes.password = pw;
 
             DB.update(editingUserId, changes);
+
+            if (u.role === 'student') {
+                const sd = DB.getStudentData(editingUserId);
+                sd.guardianFbLink = document.getElementById('edit-guardianFbLink').value.trim();
+                DB.saveStudentData(editingUserId, sd);
+            }
+
             users = DB.getAll().filter(u => u.id !== adminSession.id);
 
             document.getElementById('editModal').hidden = true;

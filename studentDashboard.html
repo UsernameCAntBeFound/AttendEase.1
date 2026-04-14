@@ -362,7 +362,7 @@
 
             <!-- Upload zone â€” hidden when letter already submitted -->
             <div class="std-upload-zone" id="stdUploadZone" onclick="triggerStdExcuseFile()">
-                <input type="file" id="stdExcuseFile" accept="image/*,.pdf" hidden
+                <input type="file" id="stdExcuseFile" accept="image/*,.pdf,.docx" hidden
                     onchange="handleStdExcuseFile(event)">
                 <div id="stdUploadPrompt">
                     <div class="std-upload-icon">
@@ -374,7 +374,7 @@
                         </svg>
                     </div>
                     <p><strong>Tap to upload</strong> your excuse letter</p>
-                    <span>PNG, JPG, or PDF â€” up to 10 MB</span>
+                    <span>PNG, JPG, PDF, or DOCX — up to 10 MB</span>
                 </div>
                 <div id="stdUploadPreviewWrap" hidden>
                     <img id="stdUploadImgPreview" class="std-excuse-img-preview" hidden>
@@ -993,6 +993,26 @@
         function submitStudentExcuseLetter() {
             if (!stdExcuseDataUrl) return;
             const result = DB.submitStudentExcuse(session, stdExcuseClassCode, stdExcuseDate, stdExcuseDataUrl, stdExcuseFileName);
+            
+            if (result.success) {
+                const teacher = DB.getTeacherAccount();
+                if (teacher) {
+                    const key = `attendease_notifs_teacher_${teacher.id}`;
+                    let list = [];
+                    try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch { }
+                    list.unshift({ 
+                        icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+                        title: `Excuse letter from ${session.firstname} ${session.lastname}`,
+                        body: `Class ${stdExcuseClassCode} • ${stdExcuseDate}`,
+                        time: new Date().toISOString(),
+                        id: Date.now() + Math.random(),
+                        read: false
+                    });
+                    if (list.length > 50) list.splice(50);
+                    localStorage.setItem(key, JSON.stringify(list));
+                }
+            }
+
             document.getElementById('stdExcuseModal').hidden = true;
             showToast(result.message);
             if (result.success) loadAllClasses();
