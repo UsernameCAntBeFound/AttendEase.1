@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AttendEase â€“ Student</title>
-    <script src="cloud-sync.js?v=1.7"></script>
-    <script src="db.js?v=1.7"></script>
+    <script src="cloud-sync.js?v=1.8"></script>
+    <script src="db.js?v=1.8"></script>
     <link rel="stylesheet" href="studentDashboard.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -807,7 +807,32 @@
                 const location = coords ? { lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy } : null;
                 const result = DB.recordStudentScan(payload, session, currentMode, location ? { location } : {});
                 showToast(result.message);
-                if (result.success) refreshAttendanceSummary();
+                if (result.success) {
+                    refreshAttendanceSummary();
+
+                    // ── Direct cross-device sync ───────────────────────────────
+                    // Push the scan record straight to the server so the teacher
+                    // dashboard reflects it within 3 seconds on ANY device.
+                    const teacher = DB.getTeacherAccount();
+                    if (teacher) {
+                        const teacherData = DB.getTeacherData(teacher.id);
+                        const sessionKey  = `${payload.cls}_${payload.date}`;
+                        const records     = (teacherData.sessions && teacherData.sessions[sessionKey]) || [];
+                        const myRecord    = records.find(r => r.studentId === session.uid) || null;
+
+                        if (myRecord) {
+                            fetch('https://attendease-messenger.onrender.com/api/scan', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    teacherId:  String(teacher.id),
+                                    sessionKey,
+                                    record: myRecord,
+                                }),
+                            }).catch(err => console.warn('[sync] scan push failed:', err));
+                        }
+                    }
+                }
                 resumeScan();
             }
 
