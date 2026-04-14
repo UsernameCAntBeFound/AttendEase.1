@@ -29,9 +29,10 @@ function _triggerSync() {
             const state = {};
             for (let i = 0; i < localStorage.length; i++) {
                 const k = localStorage.key(i);
-                if (k && k.startsWith('attendease_')) {
-                    state[k] = _stripHeavyFields(k, localStorage.getItem(k));
-                }
+                // Skip schema version (local only) and any non-app keys
+                if (!k || !k.startsWith('attendease_')) continue;
+                if (k === 'attendease_version') continue;  // NEVER sync — prevents login loop
+                state[k] = _stripHeavyFields(k, localStorage.getItem(k));
             }
             const syncVer = Date.now().toString();
             state['__sync_version'] = syncVer;
@@ -114,7 +115,10 @@ window.initCloudDb = async function () {
         let changed = false;
 
         for (const [key, value] of Object.entries(data.state)) {
+            // NEVER pull these keys from cloud — they are strictly local
             if (!key.startsWith('attendease_')) continue;
+            if (key === 'attendease_version') continue;  // prevents login loop / re-seed wipe
+            if (key === 'attendease_session') continue;  // session is per-device only
 
             const localStr = localStorage.getItem(key);
 
