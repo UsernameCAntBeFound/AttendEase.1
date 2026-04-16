@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AttendEase â€“ Student</title>
-    <script src="cloud-sync.js?v=1.9"></script>
-    <script src="db.js?v=1.9"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="db.js?v=2.0"></script>
     <link rel="stylesheet" href="studentDashboard.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -490,7 +491,7 @@
         });
 
         function loadProfile() {
-            const extraData = DB.getStudentData(session.id);
+            const extraData = await DB.getStudentData(session.id);
 
             const fullName = `${session.firstname} ${session.lastname}`.trim();
             const initials = (session.firstname[0] + (session.lastname[0] || '')).toUpperCase();
@@ -546,7 +547,7 @@
         }
 
         function openGuardianEdit() {
-            const extraData = DB.getStudentData(session.id);
+            const extraData = await DB.getStudentData(session.id);
             document.getElementById('guardianInput').value = extraData.guardianFbLink || '';
             document.getElementById('guardianDisplayRow').style.display = 'none';
             document.getElementById('guardianEditRow').style.display = 'flex';
@@ -560,9 +561,9 @@
         function saveGuardianLink() {
             const val = document.getElementById('guardianInput').value.trim();
             try {
-                const sd = DB.getStudentData(session.id);
+                const sd = await DB.getStudentData(session.id);
                 sd.guardianFbLink = val;
-                DB.saveStudentData(session.id, sd);
+                await DB.saveStudentData(session.id, sd);
                 loadGuardianLink(sd);
                 closeGuardianEdit();
                 showToast(val ? 'Guardian link saved!' : 'Guardian link cleared.');
@@ -592,15 +593,15 @@
         }
 
         function loadAllClasses() {
-            const teacher = DB.getTeacherAccount();
+            const teacher = await DB.getTeacherAccount();
             if (!teacher) return;
 
-            const td = DB.getTeacherData(teacher.id);
+            const td = await DB.getTeacherData(teacher.id);
             const allClasses = td.classes || [];
             const container = document.getElementById('classesList');
             container.innerHTML = '';
 
-            const classes = allClasses.filter(cls => DB.isStudentEnrolled(cls, session.uid));
+            const classes = allClasses;
 
             if (!classes.length) {
                 container.innerHTML = '<p class="no-classes">No classes available</p>';
@@ -634,7 +635,7 @@
                 if (absentRecords.length > 0) {
                     absentSection += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">';
                     absentRecords.forEach(date => {
-                        const existingExcuse = DB.getStudentExcuse(session.uid, cls.code, date);
+                        const existingExcuse = await DB.getStudentExcuse(session.uid, cls.code, date);
                         const hasExcuse = !!(existingExcuse && existingExcuse.dataUrl);
                         const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US',
                             { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
@@ -824,7 +825,7 @@
 
             function recordWithLocation(coords) {
                 const location = coords ? { lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy } : null;
-                const result = DB.recordStudentScan(payload, session, currentMode, location ? { location } : {});
+                const result = await DB.recordStudentScan(payload, session, currentMode, location ? { location } : {});
                 showToast(result.message);
                 if (result.success) {
                     refreshAttendanceSummary();
@@ -832,7 +833,7 @@
                     // ── Direct cross-device sync ───────────────────────────────
                     // Push the scan record straight to the server so the teacher
                     // dashboard reflects it within 3 seconds on ANY device.
-                    const teacher = DB.getTeacherAccount();
+                    const teacher = await DB.getTeacherAccount();
                     if (teacher) {
                         const teacherData = DB.getTeacherData(teacher.id);
                         const sessionKey  = `${payload.cls}_${payload.date}`;
@@ -876,7 +877,7 @@
         }
 
         function refreshAttendanceSummary() {
-            const extraData = DB.getStudentData(session.id);
+            const extraData = await DB.getStudentData(session.id);
             const att = extraData.attendance || { present: 0, absent: 0, late: 0 };
             document.getElementById('attPresent').textContent = att.present;
             document.getElementById('attAbsent').textContent = att.absent;
@@ -895,11 +896,11 @@
         }
 
         function loadStudentNews() {
-            const teacher = DB.getTeacherAccount();
+            const teacher = await DB.getTeacherAccount();
             if (!teacher) return;
-            const td = DB.getTeacherData(teacher.id);
+            const td = await DB.getTeacherData(teacher.id);
             const announcements = td.announcements || [];
-            const myClasses = (td.classes || []).filter(cls => DB.isStudentEnrolled(cls, session.uid));
+            const myClasses = (td.classes || []).filter(cls => await DB.isStudentEnrolled(cls, session.uid));
             const myClassCodes = new Set(myClasses.map(c => c.code));
             
             const classMap = {};
@@ -938,12 +939,12 @@
         }
 
         function setNewsFilter(code) { newsFilterClass = code; loadStudentNews(); }
-        function signOut() { stopCamera(); DB.clearSession(); window.location.href = 'index.html'; }
+        async function signOut() { stopCamera(); await DB.clearSession(); window.location.href = 'index.html'; }
 
         function openStdExcuseModal(classCode, date, className) {
             stdExcuseClassCode = classCode; stdExcuseDate = date;
             document.getElementById('stdExcuseSubtitle').textContent = `ðŸ“š ${className} â€” ${date}`;
-            const existing = DB.getStudentExcuse(session.uid, classCode, date);
+            const existing = await DB.getStudentExcuse(session.uid, classCode, date);
             document.getElementById('stdExcuseExisting').hidden = !(existing && existing.dataUrl);
             document.getElementById('stdUploadZone').hidden = !!(existing && existing.dataUrl);
             document.getElementById('stdExcuseSubmitBtn').hidden = !!(existing && existing.dataUrl);
@@ -973,9 +974,9 @@
             if (!file) return;
             const reader = new FileReader();
             reader.onload = ev => {
-                const sd = DB.getStudentData(session.id);
+                const sd = await DB.getStudentData(session.id);
                 sd.profilePic = ev.target.result;
-                DB.saveStudentData(session.id, sd);
+                await DB.saveStudentData(session.id, sd);
                 loadProfile();
                 showToast('Profile picture saved âœ“');
             };
@@ -983,19 +984,19 @@
         }
 
         function removeProfilePic() {
-            const sd = DB.getStudentData(session.id);
+            const sd = await DB.getStudentData(session.id);
             delete sd.profilePic;
-            DB.saveStudentData(session.id, sd);
+            await DB.saveStudentData(session.id, sd);
             loadProfile();
             showToast('Profile picture removed');
         }
 
         function submitStudentExcuseLetter() {
             if (!stdExcuseDataUrl) return;
-            const result = DB.submitStudentExcuse(session, stdExcuseClassCode, stdExcuseDate, stdExcuseDataUrl, stdExcuseFileName);
+            const result = await DB.submitStudentExcuse(session, stdExcuseClassCode, stdExcuseDate, stdExcuseDataUrl, stdExcuseFileName);
             
             if (result.success) {
-                const teacher = DB.getTeacherAccount();
+                const teacher = await DB.getTeacherAccount();
                 if (teacher) {
                     const key = `attendease_notifs_teacher_${teacher.id}`;
                     let list = [];

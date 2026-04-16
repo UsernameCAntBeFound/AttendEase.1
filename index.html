@@ -9,8 +9,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
-    <script src="cloud-sync.js?v=1.9"></script>
-    <script src="db.js?v=1.9"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="db.js?v=2.0"></script>
 </head>
 
 <body>
@@ -79,7 +80,7 @@
             }
         })();
 
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
 
             const identifier = document.getElementById('identifier').value.trim();
@@ -93,7 +94,7 @@
 
             // Small delay for UX feedback
             setTimeout(() => {
-                const user = DB.authenticate(identifier, password);
+                const user = await DB.authenticate(identifier, password);
 
                 if (!user) {
                     showError('Invalid username / email or password. Please try again.');

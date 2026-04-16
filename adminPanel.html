@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AttendEase – Admin Panel</title>
-    <script src="cloud-sync.js?v=1.9"></script>
-    <script src="db.js?v=1.9"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="db.js?v=2.0"></script>
     <link rel="stylesheet" href="adminPanel.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -635,7 +636,7 @@
             loadAdminProfilePic();
 
             // Allow all except current admin
-            users = DB.getAll().filter(u => u.id !== adminSession.id);
+            users = await DB.getAll().filter(u => u.id !== adminSession.id);
             setRole('student'); // Init auto-generated id
             refreshDashboard();
         });
@@ -666,7 +667,7 @@
         }
 
         function signOut() {
-            DB.clearSession();
+            await DB.clearSession();
             window.location.href = 'index.html';
         }
 
@@ -674,7 +675,7 @@
            DASHBOARD
         ═══════════════════════════════ */
         function refreshDashboard() {
-            users = DB.getAll().filter(u => u.id !== adminSession.id);
+            users = await DB.getAll().filter(u => u.id !== adminSession.id);
             const activeUsers = users.filter(u => !u.isArchived);
             const students = activeUsers.filter(u => u.role === 'student');
             const teachers = activeUsers.filter(u => u.role === 'teacher');
@@ -690,8 +691,8 @@
             const last5 = [...activeUsers].reverse().slice(0, 5);
             list.innerHTML = last5.map(u => {
                 let extraData = null;
-                if (u.role === 'student') extraData = DB.getStudentData(u.id);
-                if (u.role === 'teacher') extraData = DB.getTeacherData(u.id);
+                if (u.role === 'student') extraData = await DB.getStudentData(u.id);
+                if (u.role === 'teacher') extraData = await DB.getTeacherData(u.id);
                 const picHtml = (extraData && extraData.profilePic) 
                     ? `<img class="recent-avatar ${u.role}" src="${extraData.profilePic}" alt="Avatar" style="object-fit:cover;">`
                     : `<div class="recent-avatar ${u.role}">${initials(u)}</div>`;
@@ -758,8 +759,8 @@
                 }
 
                 let extraData = null;
-                if (u.role === 'student') extraData = DB.getStudentData(u.id);
-                if (u.role === 'teacher') extraData = DB.getTeacherData(u.id);
+                if (u.role === 'student') extraData = await DB.getStudentData(u.id);
+                if (u.role === 'teacher') extraData = await DB.getTeacherData(u.id);
                 const picHtml = (extraData && extraData.profilePic) 
                     ? `<img class="tbl-avatar ${u.role}" src="${extraData.profilePic}" alt="Avatar" style="object-fit:cover; border-radius:50%;">`
                     : `<div class="tbl-avatar ${u.role}">${initials(u)}</div>`;
@@ -833,7 +834,7 @@
             if (guardianGroup) {
                 if (u.role === 'student') {
                     guardianGroup.style.display = 'block';
-                    const sd = DB.getStudentData(u.id);
+                    const sd = await DB.getStudentData(u.id);
                     document.getElementById('edit-guardianFbLink').value = sd.guardianFbLink || '';
                 } else {
                     guardianGroup.style.display = 'none';
@@ -865,7 +866,7 @@
             if (pw && pw.length < 8) { showToast('Password must be at least 8 characters ✗', 'error'); return; }
 
             const newUsername = document.getElementById('edit-username').value.trim();
-            if (DB.usernameExists(newUsername, editingUserId)) {
+            if (await DB.usernameExists(newUsername, editingUserId)) {
                 showToast('Username already taken ✗', 'error'); return;
             }
 
@@ -878,15 +879,15 @@
             };
             if (pw) changes.password = pw;
 
-            DB.update(editingUserId, changes);
+            await DB.update(editingUserId, changes);
 
             if (u.role === 'student') {
-                const sd = DB.getStudentData(editingUserId);
+                const sd = await DB.getStudentData(editingUserId);
                 sd.guardianFbLink = document.getElementById('edit-guardianFbLink').value.trim();
-                DB.saveStudentData(editingUserId, sd);
+                await DB.saveStudentData(editingUserId, sd);
             }
 
-            users = DB.getAll().filter(u => u.id !== adminSession.id);
+            users = await DB.getAll().filter(u => u.id !== adminSession.id);
 
             document.getElementById('editModal').hidden = true;
             renderUserTable(filteredSearch());
@@ -924,21 +925,21 @@
 
         function confirmDelete() {
             if (modalActionType === 'delete') {
-                DB.delete(deletingUserId);
+                await DB.delete(deletingUserId);
                 showToast('Account permanently deleted ✓');
             } else {
-                DB.archive(deletingUserId);
+                await DB.archive(deletingUserId);
                 showToast('Account archived ✓');
             }
-            users = DB.getAll().filter(u => u.id !== adminSession.id);
+            users = await DB.getAll().filter(u => u.id !== adminSession.id);
             document.getElementById('deleteModal').hidden = true;
             renderUserTable(filteredSearch());
             refreshDashboard();
         }
 
         function restoreAccount(id) {
-            DB.restore(id);
-            users = DB.getAll().filter(u => u.id !== adminSession.id);
+            await DB.restore(id);
+            users = await DB.getAll().filter(u => u.id !== adminSession.id);
             renderUserTable(filteredSearch());
             refreshDashboard();
             showToast('Account restored ✓');
@@ -955,7 +956,7 @@
             document.getElementById('idLabel').textContent = role === 'student' ? 'Student ID' : (role === 'teacher' ? 'Employee #' : 'Admin ID');
             document.getElementById('previewRole').textContent = capitalize(role);
             document.getElementById('previewRole').className = 'preview-role-badge ' + role;
-            document.getElementById('cf-uid').value = DB.generateUid(role);
+            document.getElementById('cf-uid').value = await DB.generateUid(role);
             updatePreview();
         }
 
@@ -1002,9 +1003,9 @@
 
             if (pw !== pw2) { showToast('Passwords do not match ✗', 'error'); return; }
             if (pw.length < 8) { showToast('Password must be at least 8 characters ✗', 'error'); return; }
-            if (DB.usernameExists(un)) { showToast('Username already taken ✗', 'error'); return; }
+            if (await DB.usernameExists(un)) { showToast('Username already taken ✗', 'error'); return; }
 
-            DB.create({
+            await DB.create({
                 role: activeRole,
                 firstname: fn,
                 lastname: ln,
@@ -1014,7 +1015,7 @@
                 password: pw,
                 createdBy: adminSession.uid
             });
-            users = DB.getAll().filter(u => u.id !== adminSession.id);
+            users = await DB.getAll().filter(u => u.id !== adminSession.id);
             resetCreateForm();
             showToast(`${capitalize(activeRole)} account created ✓`);
             refreshDashboard();
@@ -1024,7 +1025,7 @@
             ['cf-firstname', 'cf-lastname', 'cf-email', 'cf-username', 'cf-password', 'cf-confirm'].forEach(id => {
                 document.getElementById(id).value = '';
             });
-            document.getElementById('cf-uid').value = DB.generateUid(activeRole);
+            document.getElementById('cf-uid').value = await DB.generateUid(activeRole);
             updatePreview();
         }
 
