@@ -206,17 +206,23 @@ window.DB = {
 
             if (!error && data && data.length > 0) {
                 // Normalize rows to the class shape the UI expects
-                // Support both old column names (class_code/class_name) and new (code/name)
-                const classes = data.map(row => ({
-                    code:             row.code || row.class_code || '',
-                    name:             row.name || row.class_name || row.code || row.class_code || '',
-                    schedule:         row.schedule || '',
-                    scheduleStart:    row.schedule_start || row.scheduleStart || '',
-                    scheduleEnd:      row.schedule_end || row.scheduleEnd || '',
-                    enrolled:         row.enrolled || 0,
-                    enrolledStudents: row.enrolled_students || row.enrolledStudents || [],
-                    weekly:           row.weekly || [0,0,0,0,0,0,0],
-                })).filter(c => c.code);
+                // Deduplicate by code to prevent UI duplication if DB has multiple entries
+                const uniqueClasses = new Map();
+                data.forEach(row => {
+                    const code = row.code || row.class_code || '';
+                    if (!code || uniqueClasses.has(code)) return;
+                    uniqueClasses.set(code, {
+                        code:             code,
+                        name:             row.name || row.class_name || code,
+                        schedule:         row.schedule || '',
+                        scheduleStart:    row.schedule_start || row.scheduleStart || '',
+                        scheduleEnd:      row.schedule_end || row.scheduleEnd || '',
+                        enrolled:         row.enrolled || 0,
+                        enrolledStudents: row.enrolled_students || row.enrolledStudents || [],
+                        weekly:           row.weekly || [0,0,0,0,0,0,0],
+                    });
+                });
+                const classes = Array.from(uniqueClasses.values());
                 return { classes, sessions: {}, announcements: [] };
             }
 

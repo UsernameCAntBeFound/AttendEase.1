@@ -1,4 +1,4 @@
-﻿﻿﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -415,12 +415,7 @@
                                 <label>Section</label>
                                 <select id="rptSection" onchange="renderReportPreview()">
                                     <option value="ALL">All Sections</option>
-                                    <option value="ABM-1">ABM-1</option>
-                                    <option value="ABM-2">ABM-2</option>
-                                    <option value="STEM-1">STEM-1</option>
-                                    <option value="STEM-2">STEM-2</option>
-                                    <option value="ICT-1">ICT-1</option>
-                                    <option value="ICT-2">ICT-2</option>
+                                    <!-- Dynamic options injected here -->
                                 </select>
                             </div>
                             <div class="report-actions">
@@ -507,9 +502,12 @@
                             </div>
                             <div id="studentPickerList" style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;padding:8px;"></div>
                         </div>
-                        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--border-subtle);">
-                            <button class="btn-ghost" onclick="closeClassModal()">Cancel</button>
-                            <button class="btn-primary" onclick="saveClass()" id="saveClassBtn">Save Subject</button>
+                        <div style="display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border-subtle);align-items:center;">
+                            <button id="deleteClassBtn" onclick="deleteClass()" style="display:none;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Delete</button>
+                            <div style="display:flex;gap:10px;margin-left:auto;">
+                                <button class="btn-ghost" onclick="closeClassModal()">Cancel</button>
+                                <button class="btn-primary" onclick="saveClass()" id="saveClassBtn">Save Subject</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -618,6 +616,24 @@
             const rptClass = document.getElementById('rptClass');
             rptClass.innerHTML = '<option value="ALL">All Subjects</option>' +
                 classes.map(c => `<option value="${c.code}">${c.name}</option>`).join('');
+
+            // Dynamically populate global section dropdowns based on real enrolled data
+            const groupedSections = await DB.getStudentsBySection();
+            const dynamicSections = Object.keys(groupedSections).sort((a, b) => {
+                if (a === 'No Section') return 1;
+                if (b === 'No Section') return -1;
+                return a.localeCompare(b);
+            });
+            const optionsHtml = dynamicSections.map(s => `<option value="${s}">${s}</option>`).join('');
+            
+            // Apply to Reports section filter
+            const rptSection = document.getElementById('rptSection');
+            if (rptSection) {
+                rptSection.innerHTML = '<option value="ALL">All Sections</option>' + optionsHtml;
+            }
+
+            // Stash dynamic options HTML on window to easily use in other tabs
+            window._dynamicSectionOptionsHtml = optionsHtml;
         }
 
         /* ----------------------------------------------------------------------------------------------------------------------------
@@ -655,10 +671,8 @@
             
             const selSec = document.getElementById('excuseFilterSection');
             if (selSec) {
-                // Using canonical sections to ensure empty sections are still shown in the filter
-                const sections = ['ABM-1', 'ABM-2', 'STEM-1', 'STEM-2', 'ICT-1', 'ICT-2'];
-                selSec.innerHTML = '<option value="">All Sections</option>' +
-                    sections.map(s => `<option value="${s}">${s}</option>`).join('');
+                // Use dynamically generated section options from window stash
+                selSec.innerHTML = '<option value="">All Sections</option>' + (window._dynamicSectionOptionsHtml || '');
             }
         }
 
@@ -1857,8 +1871,9 @@
                 const WEEK_DATES = getLastUniqueDates(clsSessions, 7);
                 const WEEK_LABELS = WEEK_DATES.map(formatShortDateLabel);
                 const dateRangeLabel = WEEK_DATES.length
-                    ? `${formatShortDateLabel(WEEK_DATES[0])}{formatShortDateLabel(WEEK_DATES[WEEK_DATES.length - 1])}`
+                    ? `${formatShortDateLabel(WEEK_DATES[0])} — ${formatShortDateLabel(WEEK_DATES[WEEK_DATES.length - 1])}`
                     : '';
+
 
                 // Rate per day = (present + late) / total records that day
                 // "total records" here represents all students with any status logged that day
@@ -2030,9 +2045,11 @@
 
             // Student table  sorted by name
             // Load section data for each student, cache rows, populate section filter
-            const allUsers = await DB.getAll();
+            const groupedSections = await DB.getStudentsBySection();
             const sectionLookup = {};
-            allUsers.forEach(u => { if (u.role === "student") sectionLookup[u.uid] = u.section || "No Section"; });
+            for (const [sec, users] of Object.entries(groupedSections)) {
+                users.forEach(u => sectionLookup[u.uid] = sec);
+            }
 
             const students = Object.values(studentAttMap)
                 .map(s => ({ ...s, section: sectionLookup[s.id] || "No Section" }))
@@ -2062,6 +2079,7 @@
             document.getElementById('className').value = '';
             document.getElementById('classStartTime').value = '';
             document.getElementById('classEndTime').value = '';
+            document.getElementById('deleteClassBtn').style.display = 'none';
             populateStudentPicker([]);
             document.getElementById('classModal').hidden = false;
         }
@@ -2078,6 +2096,7 @@
             document.getElementById('className').value = cls.name;
             document.getElementById('classStartTime').value = cls.scheduleStart || '';
             document.getElementById('classEndTime').value = cls.scheduleEnd || '';
+            document.getElementById('deleteClassBtn').style.display = 'block';
             populateStudentPicker(cls.enrolledStudents || []);
             document.getElementById('classModal').hidden = false;
         }
@@ -2166,6 +2185,38 @@
             document.querySelectorAll('.picker-student').forEach(el => {
                 el.classList.toggle('checked', el.querySelector('input').checked);
             });
+        }
+
+        async function deleteClass() {
+            if (!editingClassCode) return;
+            if (!confirm(`Are you sure you want to delete the subject ${editingClassCode}? This cannot be undone.`)) return;
+
+            const btn = document.getElementById('deleteClassBtn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Deleting...';
+            btn.disabled = true;
+
+            const { error } = await window.supabase
+                .from('attendease_teacher_classes')
+                .delete()
+                .eq('teacher_id', session.id)
+                .eq('code', editingClassCode);
+
+            if (error) {
+                console.error('deleteClass error:', error);
+                showToast('Error deleting subject: ' + (error.message || JSON.stringify(error)));
+                btn.textContent = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            document.getElementById('classModal').hidden = true;
+            btn.textContent = originalText;
+            btn.disabled = false;
+            
+            await populateClassDropdowns();
+            await renderClasses();
+            showToast('Subject deleted successfully!');
         }
 
         async function saveClass() {

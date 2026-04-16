@@ -35,10 +35,14 @@ END $$;
 
 -- Add any missing columns for old installs
 ALTER TABLE attendease_teacher_classes
+    ADD COLUMN IF NOT EXISTS enrolled          INTEGER DEFAULT 0,
     ADD COLUMN IF NOT EXISTS schedule_start    TEXT DEFAULT '',
     ADD COLUMN IF NOT EXISTS schedule_end      TEXT DEFAULT '',
     ADD COLUMN IF NOT EXISTS enrolled_students JSONB DEFAULT '[]'::jsonb,
     ADD COLUMN IF NOT EXISTS weekly            JSONB DEFAULT '[0,0,0,0,0,0,0]'::jsonb;
+
+-- Force Supabase to reload its schema cache so the API picks up the new columns immediately
+NOTIFY pgrst, 'reload schema';
 
 -- Fast lookup index
 CREATE INDEX IF NOT EXISTS idx_teacher_classes_teacher_id
