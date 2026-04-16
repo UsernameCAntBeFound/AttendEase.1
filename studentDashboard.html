@@ -12,7 +12,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=news" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=news" />
     <!-- jsQR for QR decoding -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </head>
@@ -72,22 +73,22 @@
 
             <!-- NEW DESKTOP SPLIT WRAPPER -->
             <div class="scan-layout">
-                
+
                 <!-- Left side: Controls & Import -->
                 <div class="scan-left">
                     <!-- Camera controls -->
                     <div class="cam-controls">
                         <button class="btn-primary" id="startBtn" onclick="startCamera()">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10" />
                                 <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
                             </svg>
                             Start Camera
                         </button>
                         <button class="btn-ghost" id="stopBtn" onclick="stopCamera()" disabled>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10" />
                                 <rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" stroke="none" />
                             </svg>
@@ -98,16 +99,18 @@
                     <!-- Import QR Code from gallery -->
                     <div class="import-qr-section">
                         <div class="divider-text"><span>or</span></div>
-                        <button class="btn-import-qr" id="importQrBtn" onclick="document.getElementById('qrFileInput').click()">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
+                        <button class="btn-import-qr" id="importQrBtn"
+                            onclick="document.getElementById('qrFileInput').click()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                                 <circle cx="8.5" cy="8.5" r="1.5" />
                                 <polyline points="21 15 16 10 5 21" />
                             </svg>
                             Import QR from Gallery
                         </button>
-                        <input type="file" id="qrFileInput" accept="image/*" hidden onchange="handleQRImageUpload(event)">
+                        <input type="file" id="qrFileInput" accept="image/*" hidden
+                            onchange="handleQRImageUpload(event)">
                         <p class="import-hint">Upload a screenshot or photo of a QR code</p>
                     </div>
                 </div>
@@ -148,8 +151,8 @@
 
                     <!-- Result toast -->
                     <div class="result-toast" id="resultToast" hidden>
-                        <svg class="toast-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <svg class="toast-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                         <span id="resultText">QR Code scanned successfully!</span>
@@ -163,18 +166,32 @@
         <section class="page" id="page-news">
 
             <div class="section-header">
-                <h2 class="section-title"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:4px;">news</span> News & Announcements</h2>
+                <h2 class="section-title"><span class="material-symbols-outlined"
+                        style="font-size:18px;vertical-align:middle;margin-right:4px;">news</span> News & Announcements
+                </h2>
                 <p class="section-sub">Stay updated with your class announcements</p>
             </div>
 
             <!-- Category toggle: News vs My Excuses -->
             <div class="news-category-toggle">
                 <button class="news-cat-btn active" id="catAnnouncements" onclick="setNewsCategory('announcements')">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
+                        <path d="M18 14h-8" />
+                        <path d="M15 18h-5" />
+                        <path d="M10 6h8v4h-8V6Z" />
+                    </svg>
                     Announcements
                 </button>
                 <button class="news-cat-btn" id="catExcuses" onclick="setNewsCategory('excuses')">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
                     My Excuse Letters
                 </button>
             </div>
@@ -192,10 +209,16 @@
                 <div class="card news-compose-card" style="margin-bottom:20px;padding:20px;text-align:center;">
                     <div class="compose-header" style="margin-bottom:12px">
                         <div class="compose-title" style="font-weight:700;font-size:16px">Post Excuse Letter</div>
-                        <p class="compose-subtitle" style="font-size:12px;opacity:.6">Upload your excuse letter for approval</p>
+                        <p class="compose-subtitle" style="font-size:12px;opacity:.6">Upload your excuse letter for
+                            approval</p>
                     </div>
-                    <button class="btn-primary" onclick="openNewsExcuseModal()" style="width:100%;max-width:300px;margin:0 auto">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <button class="btn-primary" onclick="openNewsExcuseModal()"
+                        style="width:100%;max-width:300px;margin:0 auto">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
                         Submit New Letter
                     </button>
                 </div>
@@ -268,26 +291,37 @@
                     <div class="guardian-value-wrap">
                         <span class="info-value" id="guardianDisplay"></span>
                         <button class="guardian-edit-btn" onclick="openGuardianEdit()" title="Edit guardian link">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                             </svg>
                         </button>
                     </div>
                 </div>
 
-                <div class="info-item guardian-edit-row" id="guardianEditRow" style="display:none; flex-direction:column; gap:10px;">
+                <div class="info-item guardian-edit-row" id="guardianEditRow"
+                    style="display:none; flex-direction:column; gap:10px;">
                     <label class="info-label" style="margin-bottom:2px;">
                         Guardian's Facebook Messenger Link
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2" style="vertical-align:middle;margin-left:4px;" title="Used by teacher to send Messenger notifications">
-                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--brand)"
+                            stroke-width="2" style="vertical-align:middle;margin-left:4px;"
+                            title="Used by teacher to send Messenger notifications">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="16" x2="12" y2="12" />
+                            <line x1="12" y1="8" x2="12.01" y2="8" />
                         </svg>
                     </label>
                     <input class="guardian-input" id="guardianInput" type="url"
-                        placeholder="https://m.me/guardianusername or Facebook profile URL"
-                        autocomplete="off" />
+                        placeholder="https://m.me/guardianusername or Facebook profile URL" autocomplete="off" />
                     <p class="guardian-hint">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Paste your guardian's <strong>m.me/</strong> link or Facebook profile URL. The teacher will use this to send Messenger notifications when you are absent or late.
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="vertical-align:middle;margin-right:4px;">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                        </svg> Paste your guardian's <strong>m.me/</strong> link or Facebook profile URL. The teacher
+                        will use this to send Messenger notifications when you are absent or late.
                         <br>Your guardian can also self-register by messaging the school's Facebook Page:<br>
                         <code id="guardianRegisterHint" style="font-size:11px;color:var(--brand);"></code>
                     </p>
@@ -377,7 +411,11 @@
             <p class="std-excuse-subtitle" id="stdExcuseSubtitle"></p>
 
             <div class="std-excuse-existing" id="stdExcuseExisting" hidden>
-                <div class="std-excuse-exists-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg> Excuse letter already submitted</div>
+                <div class="std-excuse-exists-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="vertical-align:middle;margin-right:4px;">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg> Excuse letter already submitted</div>
                 <div class="std-excuse-meta" id="stdExcuseMeta"></div>
             </div>
 
@@ -411,7 +449,8 @@
 
             <div class="std-excuse-actions">
                 <button class="std-excuse-cancel" onclick="closeStdExcuseModal()">Close</button>
-                <button class="std-excuse-submit" id="stdExcuseSubmitBtn" onclick="submitStudentExcuseLetter()" disabled>
+                <button class="std-excuse-submit" id="stdExcuseSubmitBtn" onclick="submitStudentExcuseLetter()"
+                    disabled>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                         stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="20 6 9 17 4 12" />
@@ -431,16 +470,19 @@
             </div>
             <div style="padding:15px 0;">
                 <select id="newsExcuseClass" class="guardian-input" style="width:100%;margin-bottom:10px;"></select>
-                <textarea id="newsExcuseReason" class="guardian-input" placeholder="Reason for absence..." style="width:100%;height:80px;margin-bottom:10px;"></textarea>
-                <button class="btn-import-qr" onclick="document.getElementById('newsExcuseFile').click()" style="width:100%;">
+                <textarea id="newsExcuseReason" class="guardian-input" placeholder="Reason for absence..."
+                    style="width:100%;height:80px;margin-bottom:10px;"></textarea>
+                <button class="btn-import-qr" onclick="document.getElementById('newsExcuseFile').click()"
+                    style="width:100%;">
                     <span id="newsExcuseFileName">Attach File</span>
                 </button>
-                <input type="file" id="newsExcuseFile" accept="image/*,.pdf,.docx" hidden onchange="handleNewsExcuseFile(event)">
+                <input type="file" id="newsExcuseFile" accept="image/*,.pdf,.docx" hidden
+                    onchange="handleNewsExcuseFile(event)">
             </div>
             <button class="btn-primary" onclick="submitNewsExcuseLetter()" style="width:100%;">Submit</button>
         </div>
     </div>
-    
+
     <!-- ========== BOTTOM NAV ========== -->
     <nav class="bottom-nav">
         <button class="nav-btn active" id="nav-scan" onclick="navigate('scan')">
@@ -488,7 +530,7 @@
         let newsFilterClass = null;  // null = show all
         let newsCategory = 'announcements';
         let newsExcuseFileData = null;
-        
+
         async function toggleSidebar() {
             if (window.innerWidth > 900) {
                 document.body.classList.toggle('sidebar-collapsed');
@@ -503,31 +545,41 @@
         let stdExcuseDataUrl = null;
         let stdExcuseFileName = null;
 
+
+
         window.addEventListener('DOMContentLoaded', async () => {
             await window.initCloudDb();
             try {
-                await loadProfile();
-            } catch (e) { console.warn('Profile load failed'); }
-            
+                if (session) {
+                    await loadProfile();
+                    await syncStudentNotifications();
+                }
+            } catch (e) { console.error("Session check failed", e); }
+
+            const lastPage = sessionStorage.getItem('student_last_page') || 'scan';
+            navigate(lastPage);
+
             allClassesOpen = false;
             if (document.getElementById('allClassesContent')) document.getElementById('allClassesContent').classList.remove('open');
             if (document.getElementById('chevronIcon')) document.getElementById('chevronIcon').classList.remove('rotated');
-            
+
             const searchContainer = document.querySelector('.topbar-search');
-            if (searchContainer) searchContainer.style.display = 'none'; 
-            
-            const lastPage = sessionStorage.getItem('student_last_page');
-            if (lastPage && document.getElementById('page-' + lastPage)) {
-                 navigate(lastPage);
-            } else {
-                 navigate('scan');
-            }
-            renderStudentNotifPanel();
-            syncStudentNotifications();
-            setInterval(syncStudentNotifications, 10000); // Polling every 10s
+            if (searchContainer) searchContainer.style.display = 'none';
+
+            setInterval(syncStudentNotifications, 10000);
         });
 
+        function toggleSNotif() {
+            return toggleStudentNotifPanel();
+        }
+
+        function clearAllNotifs() {
+            saveStudentNotifications([]);
+            renderStudentNotifPanel();
+        }
+
         async function loadProfile() {
+            if (!session) return;
             const extraData = await DB.getStudentData(session.id);
 
             const fullName = `${session.firstname} ${session.lastname}`.trim();
@@ -607,7 +659,7 @@
             const cards = document.querySelectorAll('.summary-card');
             cards.forEach((card, i) => {
                 card.style.animation = 'none';
-                card.offsetHeight; 
+                card.offsetHeight;
                 card.style.animation = `summaryPop 0.4s ${i * 0.08}s cubic-bezier(0.22, 1, 0.36, 1) both`;
             });
         }
@@ -670,9 +722,9 @@
                         absentSection += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:rgba(255,80,80,0.08);border-radius:8px;">
                                 <span style="font-size:12px;color:var(--text-muted);">Absent · ${displayDate}</span>
                                 ${hasExcuse
-                                    ? '<span style=\"font-size:11px;font-weight:600;color:var(--green);white-space:nowrap;\">\u2713 Submitted</span>'
-                                    : `<button class="std-excuse-inline-btn" onclick="openStdExcuseModal('${cls.code}','${date}','${cls.name}')" style="font-size:11px;padding:4px 10px;white-space:nowrap;">Excuse Letter</button>`
-                                }</div>`;
+                                ? '<span style=\"font-size:11px;font-weight:600;color:var(--green);white-space:nowrap;\">\u2713 Submitted</span>'
+                                : `<button class="std-excuse-inline-btn" onclick="openStdExcuseModal('${cls.code}','${date}','${cls.name}')" style="font-size:11px;padding:4px 10px;white-space:nowrap;">Excuse Letter</button>`
+                            }</div>`;
                     }
                     absentSection += '</div>';
                 }
@@ -696,13 +748,27 @@
             }
         }
 
-        function navigate(page) { if (page !== "scan") stopCamera();
+        function navigate(page) {
+            console.log("Navigating to:", page);
+            if (page !== "scan") stopCamera();
+            const target = document.getElementById('page-' + page);
+            const navBtn = document.getElementById('nav-' + page);
+
+            if (!target || !navBtn) {
+                console.warn("Navigation target or button not found, falling back to scan", page);
+                if (page !== 'scan') return navigate('scan');
+                return;
+            }
+
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('page-' + page).classList.add('active');
-            document.getElementById('nav-' + page).classList.add('active');
+
+            target.classList.add('active');
+            navBtn.classList.add('active');
+
             if (page === 'profile') loadProfile();
             if (page === 'news') renderStudentNews();
+
             const searchContainer = document.querySelector('.topbar-search');
             if (searchContainer) {
                 searchContainer.style.display = (page === 'news' || page === 'profile') ? '' : 'none';
@@ -846,10 +912,10 @@
                 const location = coords ? { lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy } : null;
                 const result = await DB.recordStudentScan(payload, session, currentMode, location ? { location } : {});
                 showToast(result.message);
-                
+
                 if (result.success) {
                     refreshAttendanceSummary();
-                    
+
                     const teacher = await DB.getTeacherAccount();
                     if (teacher) {
                         const records = await DB.getSession_attendance(teacher.id, payload.cls, payload.date);
@@ -913,7 +979,7 @@
                 const enrollmentChecks = await Promise.all(allCls.map(cls => DB.isStudentEnrolled(cls, session.uid)));
                 const myClasses = allCls.filter((cls, i) => enrollmentChecks[i]);
                 const myClassCodes = new Set(myClasses.map(c => c.code));
-                
+
                 const classMap = {};
                 (td.classes || []).forEach(c => { classMap[c.code] = c.name; });
 
@@ -932,7 +998,7 @@
                     const imgs = (a.attachments || [])
                         .filter(att => att.dataUrl)
                         .map(att => `<img src="${att.dataUrl}" alt="${att.name || 'attachment'}" style="max-width:100%;border-radius:10px;margin-top:10px;display:block;">`);
-                    const date = a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+                    const date = a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
                     return `
                     <div class="sn-news-card">
                         <div class="sn-card-header">
@@ -1007,14 +1073,14 @@
         async function submitStudentExcuseLetter() {
             if (!stdExcuseDataUrl) return;
             const result = await DB.submitStudentExcuse(session, stdExcuseClassCode, stdExcuseDate, stdExcuseDataUrl, stdExcuseFileName);
-            
+
             if (result.success) {
                 const teacher = await DB.getTeacherAccount();
                 if (teacher) {
                     const key = `attendease_notifs_teacher_${teacher.id}`;
                     let list = [];
                     try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch { }
-                    list.unshift({ 
+                    list.unshift({
                         icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
                         title: `Excuse letter from ${session.firstname} ${session.lastname}`,
                         body: `Class ${stdExcuseClassCode} - ${stdExcuseDate}`,
@@ -1030,88 +1096,90 @@
             document.getElementById('stdExcuseModal').hidden = true;
             showToast(result.message);
             if (result.success) loadAllClasses();
-                /* ═══════════════════════════════
-           NOTIFICATIONS
-        ═══════════════════════════════ */
-        const STUDENT_NOTIF_KEY = () => `attendease_student_notifs_${session.id}`;
-        
-        function loadStudentNotifications() { 
-            try { return JSON.parse(localStorage.getItem(STUDENT_NOTIF_KEY()) || '[]'); } catch { return []; } 
-        }
-        
-        function saveStudentNotifications(list) { 
-            try { localStorage.setItem(STUDENT_NOTIF_KEY(), JSON.stringify(list)); } catch { } 
         }
 
-        async function syncStudentNotifications() {
-            try {
-                // Fetch last 5 logs for this student
-                const { data: logs, error } = await window.supabase
-                    .from('attendease_student_scan_logs')
-                    .select('*')
-                    .eq('student_id', session.id)
-                    .order('created_at', { ascending: false })
-                    .limit(5);
+        /* ═══════════════════════════════
+       NOTIFICATIONS
+    ═══════════════════════════════ */
+            const STUDENT_NOTIF_KEY = () => `attendease_student_notifs_${session.id}`;
 
-                if (error) throw error;
-                if (!logs) return;
+            function loadStudentNotifications() {
+                try { return JSON.parse(localStorage.getItem(STUDENT_NOTIF_KEY()) || '[]'); } catch { return []; }
+            }
 
-                const localNotifs = loadStudentNotifications();
-                const existingLogIds = new Set(localNotifs.filter(n => n.logId).map(n => n.logId));
+            function saveStudentNotifications(list) {
+                try { localStorage.setItem(STUDENT_NOTIF_KEY(), JSON.stringify(list)); } catch { }
+            }
 
-                let added = false;
-                logs.forEach(log => {
-                    if (!existingLogIds.has(log.id)) {
-                        localNotifs.unshift({
-                            id: Date.now() + Math.random(),
-                            logId: log.id,
-                            title: `Attendance: ${capitalize(log.mode === 'in' ? 'Time In' : 'Time Out')}`,
-                            sub: `${log.class_code} — ${log.scan_time}${log.status ? ` (${log.status})` : ''}`,
-                            time: new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                            read: false,
-                            type: log.status === 'late' ? 'warn' : 'info'
-                        });
-                        added = true;
+            async function syncStudentNotifications() {
+                try {
+                    // Fetch last 5 logs for this student
+                    const { data: logs, error } = await window.supabase
+                        .from('attendease_student_scan_logs')
+                        .select('*')
+                        .eq('student_id', session.id)
+                        .order('created_at', { ascending: false })
+                        .limit(5);
+
+                    if (error) throw error;
+                    if (!logs) return;
+
+                    const localNotifs = loadStudentNotifications();
+                    const existingLogIds = new Set(localNotifs.filter(n => n.logId).map(n => n.logId));
+
+                    let added = false;
+                    logs.forEach(log => {
+                        if (!existingLogIds.has(log.id)) {
+                            localNotifs.unshift({
+                                id: Date.now() + Math.random(),
+                                logId: log.id,
+                                title: `Attendance: ${capitalize(log.mode === 'in' ? 'Time In' : 'Time Out')}`,
+                                sub: `${log.class_code} — ${log.scan_time}${log.status ? ` (${log.status})` : ''}`,
+                                time: new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                read: false,
+                                type: log.status === 'late' ? 'warn' : 'info'
+                            });
+                            added = true;
+                        }
+                    });
+
+                    if (added) {
+                        saveStudentNotifications(localNotifs.slice(0, 15)); // Keep last 15
+                        renderStudentNotifPanel();
                     }
-                });
-
-                if (added) {
-                    saveStudentNotifications(localNotifs.slice(0, 15)); // Keep last 15
-                    renderStudentNotifPanel();
+                } catch (err) {
+                    console.warn('Sync notifs failed:', err);
                 }
-            } catch (err) {
-                console.warn('Sync notifs failed:', err);
-            }
-        }
-
-        function renderStudentNotifPanel() {
-            const list = loadStudentNotifications();
-            const badge = document.getElementById('sNotifBadge');
-            const listEl = document.getElementById('sNotifList');
-            
-            const unreadCount = list.filter(n => !n.read).length;
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount;
-                badge.hidden = false;
-            } else {
-                badge.hidden = true;
             }
 
-            if (!list.length) { 
-                listEl.innerHTML = `
+            function renderStudentNotifPanel() {
+                const list = loadStudentNotifications();
+                const badge = document.getElementById('sNotifBadge');
+                const listEl = document.getElementById('sNotifList');
+
+                const unreadCount = list.filter(n => !n.read).length;
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.hidden = false;
+                } else {
+                    badge.hidden = true;
+                }
+
+                if (!list.length) {
+                    listEl.innerHTML = `
                     <div class="snotif-empty">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px;opacity:0.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                         <p>No notifications yet</p>
-                    </div>`; 
-                return; 
-            }
+                    </div>`;
+                    return;
+                }
 
-            listEl.innerHTML = list.map(n => `
+                listEl.innerHTML = list.map(n => `
                 <div class="snotif-item ${n.read ? '' : 'unread'}" onclick="markNotifRead(${n.id})">
                     <div class="snotif-item-icon ${n.type || 'info'}">
-                        ${n.type === 'warn' 
-                            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
-                            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'}
+                        ${n.type === 'warn'
+                        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+                        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'}
                     </div>
                     <div class="snotif-item-body">
                         <div class="snotif-item-title">${n.title}</div>
@@ -1120,72 +1188,72 @@
                     </div>
                 </div>
             `).join('');
-        }
-
-        function toggleStudentNotifPanel() {
-            const panel = document.getElementById('sNotifPanel');
-            const isHidden = panel.hidden;
-            panel.hidden = !isHidden;
-            if (isHidden) {
-                syncStudentNotifications();
             }
-        }
 
-        function markNotifRead(id) {
-            const list = loadStudentNotifications();
-            const idx = list.findIndex(n => n.id === id);
-            if (idx !== -1) {
-                list[idx].read = true;
-                saveStudentNotifications(list);
+            function toggleStudentNotifPanel() {
+                const panel = document.getElementById('sNotifPanel');
+                const isHidden = panel.hidden;
+                panel.hidden = !isHidden;
+                if (isHidden) {
+                    syncStudentNotifications();
+                }
+            }
+
+            function markNotifRead(id) {
+                const list = loadStudentNotifications();
+                const idx = list.findIndex(n => n.id === id);
+                if (idx !== -1) {
+                    list[idx].read = true;
+                    saveStudentNotifications(list);
+                    renderStudentNotifPanel();
+                }
+            }
+
+            function clearAllNotifs() {
+                saveStudentNotifications([]);
                 renderStudentNotifPanel();
             }
-        }
 
-        function clearAllNotifs() {
-            saveStudentNotifications([]);
-            renderStudentNotifPanel();
-        }
+            function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-        function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-        function setNewsCategory(cat) {
-            newsCategory = cat;
-            document.querySelectorAll('.news-cat-btn').forEach(b => b.classList.remove('active'));
-            if (cat === 'announcements') {
-                document.getElementById('catAnnouncements').classList.add('active');
-                document.getElementById('studentAnnouncementsSection').style.display = 'block';
-                document.getElementById('studentExcusesSection').style.display = 'none';
-                renderStudentNews();
-            } else {
-                document.getElementById('catExcuses').classList.add('active');
-                document.getElementById('studentAnnouncementsSection').style.display = 'none';
-                document.getElementById('studentExcusesSection').style.display = 'block';
-                renderMyExcusesFeed();
-            }
-        }
-
-        async function renderMyExcusesFeed() {
-            const feed = document.getElementById('myExcusesFeed');
-            feed.innerHTML = '<div class="loading-news" style="padding:24px;text-align:center;opacity:.5">Loading your excuses...</div>';
-            try {
-                const { data: scans, error } = await supabase
-                    .from('attendease_scans')
-                    .select('*')
-                    .eq('student_id', session.uid)
-                    .not('excuse_content', 'is', null)
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-                if (!scans || scans.length === 0) {
-                    feed.innerHTML = '<div class="news-empty" style="padding:24px;text-align:center;opacity:.5">You haven\'t submitted any excuse letters yet.</div>';
-                    return;
+            function setNewsCategory(cat) {
+                newsCategory = cat;
+                document.querySelectorAll('.news-cat-btn').forEach(b => b.classList.remove('active'));
+                if (cat === 'announcements') {
+                    document.getElementById('catAnnouncements').classList.add('active');
+                    document.getElementById('studentAnnouncementsSection').style.display = 'block';
+                    document.getElementById('studentExcusesSection').style.display = 'none';
+                    renderStudentNews();
+                } else {
+                    document.getElementById('catExcuses').classList.add('active');
+                    document.getElementById('studentAnnouncementsSection').style.display = 'none';
+                    document.getElementById('studentExcusesSection').style.display = 'block';
+                    renderMyExcusesFeed();
                 }
+            }
 
-                feed.innerHTML = '';
-                scans.forEach(s => {
-                    const card = document.createElement('div');
-                    card.className = 'news-card';
-                    card.innerHTML = `
+            async function renderMyExcusesFeed() {
+                const feed = document.getElementById('myExcusesFeed');
+                feed.innerHTML = '<div class="loading-news" style="padding:24px;text-align:center;opacity:.5">Loading your excuses...</div>';
+                try {
+                    const { data: scans, error } = await supabase
+                        .from('attendease_scans')
+                        .select('*')
+                        .eq('student_id', session.uid)
+                        .not('excuse_content', 'is', null)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+                    if (!scans || scans.length === 0) {
+                        feed.innerHTML = '<div class="news-empty" style="padding:24px;text-align:center;opacity:.5">You haven\'t submitted any excuse letters yet.</div>';
+                        return;
+                    }
+
+                    feed.innerHTML = '';
+                    scans.forEach(s => {
+                        const card = document.createElement('div');
+                        card.className = 'news-card';
+                        card.innerHTML = `
                         <div class="news-card-header" style="display:flex;justify-content:space-between;align-items:center;">
                             <div class="news-author">
                                 <div class="author-avatar">${(s.class_name || 'C').charAt(0)}</div>
@@ -1204,85 +1272,85 @@
                             </div>
                         </div>
                     `;
-                    feed.appendChild(card);
-                });
-            } catch (err) {
-                console.error(err);
-                feed.innerHTML = '<div class="news-error">Error loading excuses.</div>';
+                        feed.appendChild(card);
+                    });
+                } catch (err) {
+                    console.error(err);
+                    feed.innerHTML = '<div class="news-error">Error loading excuses.</div>';
+                }
             }
-        }
 
-        async function openNewsExcuseModal() {
-            const select = document.getElementById('newsExcuseClass');
-            select.innerHTML = '<option value="">Select a Class</option>';
-            const sd = await DB.getStudentData(session.uid);
-            const classes = sd.classes || [];
-            classes.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.code;
-                opt.textContent = c.name;
-                select.appendChild(opt);
-            });
-            document.getElementById('newsExcuseModal').hidden = false;
-        }
-
-        function closeNewsExcuseModal(e) {
-            if (!e || e.target === document.getElementById('newsExcuseModal'))
-                document.getElementById('newsExcuseModal').hidden = true;
-        }
-
-        function handleNewsExcuseFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            document.getElementById('newsExcuseFileName').textContent = file.name;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                newsExcuseFileData = {
-                    name: file.name,
-                    type: file.type,
-                    data: ev.target.result
-                };
-            };
-            reader.readAsDataURL(file);
-        }
-
-        async function submitNewsExcuseLetter() {
-            const classCode = document.getElementById('newsExcuseClass').value;
-            const remarks = document.getElementById('newsExcuseReason').value;
-            const className = document.getElementById('newsExcuseClass').options[document.getElementById('newsExcuseClass').selectedIndex].text;
-            
-            if (!classCode) return showToast('Please select a class.');
-            if (!newsExcuseFileData) return showToast('Please attach a document or photo.');
-
-            try {
-                showToast('Submitting...');
+            async function openNewsExcuseModal() {
+                const select = document.getElementById('newsExcuseClass');
+                select.innerHTML = '<option value="">Select a Class</option>';
                 const sd = await DB.getStudentData(session.uid);
-                const { error } = await window.supabase
-                    .from('attendease_scans')
-                    .insert([{
-                        student_id: session.uid,
-                        student_name: `${session.firstname} ${session.lastname}`,
-                        id_number: session.uid, // Corrected from session.id_number
-                        section: sd.section || '',
-                        class_code: classCode,
-                        class_name: className,
-                        session_date: new Date().toISOString().split('T')[0],
-                        status: 'excused',
-                        excuse_content: newsExcuseFileData.data,
-                        excuse_type: newsExcuseFileData.type,
-                        remarks: remarks || ''
-                    }]);
-
-                if (error) throw error;
-
-                showToast('Excuse letter submitted successfully!');
-                closeNewsExcuseModal();
-                renderMyExcusesFeed();
-            } catch (err) {
-                console.error(err);
-                showToast('Submission failed.');
+                const classes = sd.classes || [];
+                classes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.code;
+                    opt.textContent = c.name;
+                    select.appendChild(opt);
+                });
+                document.getElementById('newsExcuseModal').hidden = false;
             }
-        }
+
+            function closeNewsExcuseModal(e) {
+                if (!e || e.target === document.getElementById('newsExcuseModal'))
+                    document.getElementById('newsExcuseModal').hidden = true;
+            }
+
+            function handleNewsExcuseFile(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                document.getElementById('newsExcuseFileName').textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    newsExcuseFileData = {
+                        name: file.name,
+                        type: file.type,
+                        data: ev.target.result
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+
+            async function submitNewsExcuseLetter() {
+                const classCode = document.getElementById('newsExcuseClass').value;
+                const remarks = document.getElementById('newsExcuseReason').value;
+                const className = document.getElementById('newsExcuseClass').options[document.getElementById('newsExcuseClass').selectedIndex].text;
+
+                if (!classCode) return showToast('Please select a class.');
+                if (!newsExcuseFileData) return showToast('Please attach a document or photo.');
+
+                try {
+                    showToast('Submitting...');
+                    const sd = await DB.getStudentData(session.uid);
+                    const { error } = await window.supabase
+                        .from('attendease_scans')
+                        .insert([{
+                            student_id: session.uid,
+                            student_name: `${session.firstname} ${session.lastname}`,
+                            id_number: session.uid, // Corrected from session.id_number
+                            section: sd.section || '',
+                            class_code: classCode,
+                            class_name: className,
+                            session_date: new Date().toISOString().split('T')[0],
+                            status: 'excused',
+                            excuse_content: newsExcuseFileData.data,
+                            excuse_type: newsExcuseFileData.type,
+                            remarks: remarks || ''
+                        }]);
+
+                    if (error) throw error;
+
+                    showToast('Excuse letter submitted successfully!');
+                    closeNewsExcuseModal();
+                    renderMyExcusesFeed();
+                } catch (err) {
+                    console.error(err);
+                    showToast('Submission failed.');
+                }
+            }
     </script>
 
     <!-- Notification panel -->
@@ -1294,4 +1362,6 @@
         <div class="snotif-list" id="sNotifList"></div>
     </div>
 </body>
+
 </html>
+}

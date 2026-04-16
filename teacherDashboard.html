@@ -109,7 +109,7 @@
                     <line x1="8" y1="21" x2="16" y2="21" />
                     <line x1="12" y1="17" x2="12" y2="21" />
                 </svg>
-                <span>Classes</span>
+                <span>Subjects</span>
             </button>
 
         </nav>
@@ -154,6 +154,14 @@
                         </svg>
                         <span class="notif-badge" id="notifBadge" hidden>0</span>
                     </button>
+                </div>
+                <!-- Notifications dropdown panel (required by renderNotifPanel/toggleNotifPanel JS) -->
+                <div id="notifPanel" class="notif-panel" hidden>
+                    <div class="notif-panel-header">
+                        <div class="notif-panel-title">Notifications</div>
+                        <button class="notif-clear-btn" onclick="clearAllNotifs()">Clear</button>
+                    </div>
+                    <div id="notifList" class="notif-list"></div>
                 </div>
             </div>
         </header>
@@ -225,6 +233,7 @@
                                         <th>#</th>
                                         <th>Student Name</th>
                                         <th>ID Number</th>
+                                        <th>Section</th>
                                         <th>Time In</th>
                                         <th>Time Out</th>
                                         <th>Status</th>
@@ -404,6 +413,66 @@
                     <div class="excuse-letters-section">
                         <div id="excuseLettersFeed" class="news-feed"></div>
                     </div>
+                </div>
+
+            </section>
+
+            <!-- ------ REPORTS PAGE ------ -->
+            <section class="page" id="page-reports">
+                <div class="reports-layout">
+                    <div class="report-controls card">
+                        <h3 class="card-title">Attendance Reports</h3>
+                        <div class="report-filters">
+                            <div class="form-group">
+                                <label>Subject</label>
+                                <select id="rptClass" onchange="renderReportPreview()"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>From</label>
+                                <input type="date" id="rptFrom" onchange="renderReportPreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>To</label>
+                                <input type="date" id="rptTo" onchange="renderReportPreview()">
+                            </div>
+                            <div class="report-actions">
+                                <button class="btn-primary" onclick="exportPDF()">Export PDF</button>
+                                <button class="btn-ghost" onclick="exportCSV()">Export CSV</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-preview">
+                        <div class="table-card">
+                            <table class="report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>ID Number</th>
+                                        <th>Section</th>
+                                        <th>Subject</th>
+                                        <th>Present</th>
+                                        <th>Absent</th>
+                                        <th>Excused</th>
+                                        <th>Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportPreviewBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ------ CLASSES PAGE ------ -->
+            <section class="page" id="page-classes">
+                <div class="classes-header">
+                    <h3 class="card-title">Analytics & Subjects</h3>
+                    <button class="btn-primary" onclick="openAddClassModal()">+ Add Subject</button>
+                </div>
+                <div class="classes-grid" id="classesGrid"></div>
+            </section>
+
         </main>
     </div>
 
@@ -415,6 +484,12 @@
         let currentClassCode = null;
         let currentDate = null;
         let currentSessionStudents = [];
+        let currentStatusFilter = null;
+        // Chart.js instances keyed by class code so we can destroy/recreate charts safely.
+        const chartInstances = {};
+        // Leaflet map objects (some map code paths exist in this file; declaring prevents ReferenceError).
+        let attendanceMap = null;
+        let mapMarkers = [];
         let allPresentState = false;
         let previousStatuses = [];
         let qrTimerInterval = null;
@@ -435,19 +510,23 @@
 
             const today = new Date().toISOString().slice(0, 10);
             const defDate = (today >= '2026-04-12' && today <= '2026-04-18') ? today : '2026-04-12';
-            document.getElementById('sessionDate').value = defDate;
-            document.getElementById('qrDate').value = defDate;
-            document.getElementById('rptFrom').value = '2026-04-12';
-            document.getElementById('rptTo').value = '2026-04-18';
 
-            populateClassDropdowns();
-            currentClassCode = document.getElementById('classSelect').value;
-            currentDate = defDate;   // use today's date, not a hardcoded one
-            // Sequence matters: first populate, THEN load!
+            const elSDate = document.getElementById('sessionDate');
+            if (elSDate) elSDate.value = defDate;
+            const elQDate = document.getElementById('qrDate');
+            if (elQDate) elQDate.value = defDate;
+            const elRFrom = document.getElementById('rptFrom');
+            if (elRFrom) elRFrom.value = '2026-04-12';
+            const elRTo = document.getElementById('rptTo');
+            if (elRTo) elRTo.value = '2026-04-18';
+
             await populateClassDropdowns();
-            currentClassCode = document.getElementById('classSelect').value;
-            currentDate = defDate;
-            loadAttendanceSession();
+            const classSelect = document.getElementById('classSelect');
+            if (classSelect) {
+                currentClassCode = classSelect.value;
+                currentDate = defDate;
+                loadAttendanceSession();
+            }
             renderReportPreview();
             renderClasses();
             renderNewsFeed();
@@ -498,7 +577,7 @@
         /* ----------------------------------------------------------------------------------------------------------------------------
            NAVIGATION
         ---------------------------------------------------------------------------------------------------------------------------- */
-        const PAGE_TITLES = { attendance: 'Attendance', qrcode: 'QR Code', news: 'News', reports: 'Reports', classes: 'Classes' };
+        const PAGE_TITLES = { attendance: 'Attendance', qrcode: 'QR Code', news: 'News', reports: 'Reports', classes: 'Subjects' };
 
         async function navigate(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -561,24 +640,28 @@
             const recordMap = {};
             savedRecords.forEach(r => { recordMap[r.studentId] = true; });
 
-            (await DB.getAll())
-                .filter(u => u.role === 'student')
-                .forEach(student => {
-                    if (!recordMap[student.uid]) {
-                        const dbRecord = savedRecords.find(r => r.studentId === student.uid);
-                        savedRecords.push({
-                            studentId: student.uid,
-                            name: `${student.firstname}`.trim(),
-                            status: dbRecord ? dbRecord.status : 'absent',
-                            timeIn: dbRecord ? dbRecord.timeIn : null,
-                            timeOut: dbRecord ? dbRecord.timeOut : null,
-                            remark: dbRecord ? dbRecord.remark || '' : '',
-                            excuse: dbRecord ? dbRecord.excuse || null : null,
-                            excuseFileName: dbRecord ? dbRecord.excuseFileName || '' : '',
-                            excuseSubmittedAt: dbRecord ? dbRecord.excuseSubmittedAt || '' : '',
-                        });
-                    }
-                });
+            const allUsers = await DB.getAll();
+            const students = allUsers.filter(u => u.role === 'student');
+            
+            // Pre-fetch all student metadata into cache for faster rendering
+            await Promise.all(students.map(s => DB.getStudentData(s.id)));
+
+            students.forEach(student => {
+                const sId = student.uid;
+                if (!recordMap[sId]) {
+                    savedRecords.push({
+                        studentId: sId,
+                        name: `${student.firstname} ${student.lastname}`.trim(),
+                        status: 'absent',
+                        timeIn: null,
+                        timeOut: null,
+                        remark: '',
+                        excuse: null,
+                        excuseFileName: '',
+                        excuseSubmittedAt: '',
+                    });
+                }
+            });
 
         currentSessionStudents = savedRecords;
         const newHash = JSON.stringify(currentSessionStudents) + currentStatusFilter;
@@ -625,15 +708,17 @@
                 const realIdx = currentSessionStudents.findIndex(r => r.studentId === s.studentId);
                 const studentUser = (await DB.getAll()).find(u => u.uid === s.studentId);
                 const extraData = studentUser ? await DB.getStudentData(studentUser.id) : null;
+                const initials = s.name.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2);
                 const picHtml = (extraData && extraData.profilePic)
                     ? `<img class="tbl-avatar student" src="${extraData.profilePic}" alt="Avatar" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:10px;">`
-                    : '<div class="tbl-avatar student" style="width:32px;height:32px;border-radius:50%;background:#e0e7ff;color:#4f46e5;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;vertical-align:middle;margin-right:10px;">' + (s.name.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2)) + '</div>';
+                    : `<div class="tbl-avatar student" style="width:32px;height:32px;border-radius:50%;background:#e0e7ff;color:#4f46e5;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;vertical-align:middle;margin-right:10px;">${initials}</div>`;
 
                 tbody.innerHTML += `
         <tr id="row-${realIdx}" class="${s.status}">
             <td class="row-num">${i + 1}</td>
             <td class="student-name" style="text-align:left;">${picHtml}${s.name}</td>
             <td class="student-id">${s.studentId}</td>
+            <td><span class="sub-text">${extraData ? extraData.section || '—' : '—'}</span></td>
             <td>${s.timeIn ? `<span class="time-badge in">${s.timeIn}</span>` : '<span class="no-action"></span>'}</td>
             <td>${s.timeOut ? `<span class="time-badge out">${s.timeOut}</span>` : '<span class="no-action"></span>'}</td>
             <td>
@@ -818,8 +903,9 @@
                 list = list.filter(s => s.status === currentStatusFilter);
             }
             // Search filter
-            const q = document.getElementById('searchInput').value.toLowerCase();
-            if (q) {
+            const searchEl = document.getElementById('searchInput');
+            const q = (searchEl && typeof searchEl.value === 'string') ? searchEl.value.toLowerCase() : '';
+            if (q && q.length > 0) {
                 list = list.filter(s => s.name.toLowerCase().includes(q) || s.studentId.includes(q));
             }
             return list;
@@ -1257,24 +1343,28 @@
             }
 
             for (const cls of clsKeys) {
+                const schedDisplay = (DB.schedules && DB.schedules[cls]) ? DB.schedules[cls].display : '';
                 tbody.innerHTML += `<tr style="background:rgba(99,102,241,.12)">
                     <td colspan="7" style="font-weight:700;color:var(--brand);padding:6px 10px;font-size:13px">
-                        ${CLASS_NAMES[cls] || cls} &bull; <span style="font-weight:400;font-size:11px;opacity:.8">${DB.schedules[cls] ? DB.schedules[cls].display : ''}</span>
+                        ${CLASS_NAMES[cls] || cls} &bull; <span style="font-weight:400;font-size:11px;opacity:.8">${schedDisplay}</span>
                     </td></tr>`;
                 const students = Object.values(clsMap[cls]);
-                students.forEach(s => {
+                for (const s of students) {
+                    const studentUser = (await DB.getAll()).find(u => u.uid === s.id);
+                    const sData = studentUser ? await DB.getStudentData(studentUser.id) : null;
                     const total = s.present + s.absent + s.late + s.excused || 1;
                     const rate = Math.round(((s.present + s.late) / total) * 100);
                     tbody.innerHTML += `<tr>
                         <td>${s.name}</td>
                         <td>${s.id}</td>
+                        <td><span class="sub-text">${sData ? sData.section || '—' : '—'}</span></td>
                         <td><span style="font-size:11px;opacity:.7">${CLASS_NAMES[cls] || cls}</span></td>
                         <td><span class="chip green">${s.present}</span></td>
                         <td><span class="chip red">${s.absent}</span></td>
                         <td><span class="chip yellow">${s.excused}</span></td>
                         <td><span class="chip ${rate >= 80 ? 'green' : rate >= 60 ? 'yellow' : 'red'}">${rate}%</span></td>
                     </tr>`;
-                });
+                }
             }
         }
 
@@ -1439,8 +1529,33 @@
         }
 
         /* ----------------------------------------------------------------------------------------------------------------------------
-           CLASSES  Grid, Detail View, Add/Edit
+           SUBJECTS  Grid, Detail View, Add/Edit
         ---------------------------------------------------------------------------------------------------------------------------- */
+        // Supabase stores session_date in the DB; normalize to YYYY-MM-DD for consistent keys.
+        function normalizeSessionDateKey(v) {
+            if (!v) return null;
+            if (typeof v === 'string') return v.slice(0, 10);
+            try { return new Date(v).toISOString().slice(0, 10); } catch { return null; }
+        }
+
+        function formatShortDateLabel(yyyyMmDd) {
+            try {
+                return new Date(yyyyMmDd + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            } catch {
+                return yyyyMmDd;
+            }
+        }
+
+        function getLastUniqueDates(records, n = 7) {
+            const uniq = new Set();
+            (records || []).forEach(r => {
+                const key = normalizeSessionDateKey(r.session_date);
+                if (key) uniq.add(key);
+            });
+            const list = [...uniq].sort(); // YYYY-MM-DD sorts chronologically
+            return list.slice(-n);
+        }
+
         async function renderClasses() {
             const grid = document.getElementById('classesGrid');
             grid.innerHTML = '';
@@ -1448,38 +1563,59 @@
             const classes = teacherData.classes || [];
 
             if (!classes.length) {
-                grid.innerHTML = `<p style="opacity:.5;padding:24px">No classes configured. Click "Add Class" to get started.</p>`;
+                grid.innerHTML = `<p style="opacity:.5;padding:24px">No subjects configured. Click "Add Subject" to get started.</p>`;
                 return;
             }
 
-            const WEEK_DATES = ['2026-04-12', '2026-04-13', '2026-04-14', '2026-04-15', '2026-04-16', '2026-04-17', '2026-04-18'];
-            const WEEK_LABELS = ['Apr 12', 'Apr 13', 'Apr 14', 'Apr 15', 'Apr 16', 'Apr 17', 'Apr 18'];
-
             const allSessions = await DB.getAllSessionsReport(session.id);
+
+            // Build sessionMap: class_code_date -> array of { studentId, status }
             const sessionMap = {};
             allSessions.forEach(r => {
-                const k = r.class_code + '_' + r.session_date;
+                const dateKey = normalizeSessionDateKey(r.session_date);
+                if (!dateKey) return;
+                const k = r.class_code + '_' + dateKey;
                 if (!sessionMap[k]) sessionMap[k] = [];
-                sessionMap[k].push({ status: r.status });
+                sessionMap[k].push({ studentId: r.student_uid, status: r.status });
             });
 
             for (const cls of classes) {
+                // Derive enrolled students from unique UIDs ever seen for this class
+                const clsSessions = allSessions.filter(r => r.class_code === cls.code);
+                const uniqueStudentIds = new Set(clsSessions.map(r => r.student_uid));
+                const enrolledCount = uniqueStudentIds.size || 0;
+
+                const WEEK_DATES = getLastUniqueDates(clsSessions, 7);
+                const WEEK_LABELS = WEEK_DATES.map(formatShortDateLabel);
+                const dateRangeLabel = WEEK_DATES.length
+                    ? `${formatShortDateLabel(WEEK_DATES[0])}–${formatShortDateLabel(WEEK_DATES[WEEK_DATES.length - 1])}`
+                    : '';
+
+                // Rate per day = (present + late) / total records that day
+                // "total records" here represents all students with any status logged that day
+                // which is the correct denominator (avoids inflating rate when teacher adds absents)
                 const dailyRates = WEEK_DATES.map(date => {
                     const key = `${cls.code}_${date}`;
                     const records = sessionMap[key];
                     if (!records || !records.length) return null;
-                    const present = records.filter(r => r.status === 'present' || r.status === 'late').length;
-                    return Math.round((present / records.length) * 100);
+                    // Deduplicate by studentId — keep last record if duplicates
+                    const byStudent = {};
+                    records.forEach(r => { byStudent[r.studentId] = r.status; });
+                    const statuses = Object.values(byStudent);
+                    const attended = statuses.filter(s => s === 'present' || s === 'late').length;
+                    return Math.round((attended / statuses.length) * 100);
                 });
 
                 const validRates = dailyRates.filter(r => r !== null);
-                const avg = validRates.length
+                const hasData = validRates.length > 0;
+                const avg = hasData
                     ? Math.round(validRates.reduce((a, b) => a + b, 0) / validRates.length)
                     : 0;
                 const color = avg >= 90 ? '#22c55e' : avg >= 75 ? '#f59e0b' : avg > 0 ? '#ef4444' : '#6366f1';
 
-                const enrolledCount = (cls.enrolledStudents && cls.enrolledStudents.length > 0)
-                    ? cls.enrolledStudents.length
+                // Show real enrolled count, fall back to total students if no sessions yet
+                const displayCount = enrolledCount > 0
+                    ? enrolledCount
                     : (await DB.getAll()).filter(u => u.role === 'student').length;
 
                 const div = document.createElement('div');
@@ -1490,19 +1626,19 @@
                 <div>
                     <div class="ca-code">${cls.code}</div>
                     <div class="ca-name">${cls.name}</div>
-                    <div class="ca-sched">${cls.schedule || 'No schedule set'} &bull; ${enrolledCount} students</div>
+                    <div class="ca-sched">${cls.schedule || 'No schedule set'} &bull; ${displayCount} student${displayCount !== 1 ? 's' : ''}</div>
                 </div>
-                <div class="ca-rate" style="color:${color}">${avg > 0 ? avg + '%' : 'No data'}</div>
+                <div class="ca-rate" style="color:${color}">${hasData ? avg + '%' : 'No data'}</div>
             </div>
             <div class="ca-bar-wrap">
-                <div class="ca-bar-fill" style="width:${avg}%; background:${color}88;border-color:${color}"></div>
+                <div class="ca-bar-fill" style="width:${hasData ? avg : 0}%; background:${color}88;border-color:${color}"></div>
             </div>
             <div style="position:relative;height:110px;width:100%">
                 <canvas id="chart-${cls.code}"></canvas>
             </div>
             <div class="ca-legend">
                 <span class="legend-dot" style="background:${color}"></span>
-                <span>Daily Attendance Rate (%) &mdash; Apr 12&ndash;18</span>
+                <span>Daily Attendance Rate (%) &mdash; ${dateRangeLabel || 'No data yet'}</span>
             </div>
         `;
                 grid.appendChild(div);
@@ -1515,7 +1651,7 @@
                     chartInstances[cls.code] = new Chart(ctx, {
                         type: 'line',
                         data: {
-                            labels: WEEK_LABELS,
+                            labels: WEEK_LABELS.length ? WEEK_LABELS : ['No data'],
                             datasets: [{
                                 data: dailyRates,
                                 borderColor: color,
@@ -1566,42 +1702,51 @@
                     <div class="detail-actions">
                         <button class="btn-accent" onclick="openEditClassModal('${cls.code}')">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                            Edit Class
+                            Edit Subject
                         </button>
                     </div>
                 </div>
             `;
 
-            // Stats
-            const WEEK_DATES = ['2026-04-12', '2026-04-13', '2026-04-14', '2026-04-15', '2026-04-16', '2026-04-17', '2026-04-18'];
-            let totalPresent = 0, totalAbsent = 0, totalLate = 0, totalExcused = 0;
-            const studentAttMap = {}; // studentId  { name, present, absent, late, excused }
-            
+            // Stats — build from all sessions for this specific class
             const allSessionsDetail = await DB.getAllSessionsReport(session.id);
-            const sessionMapDetail = {};
-            allSessionsDetail.forEach(r => {
-                const k = r.class_code + '_' + r.session_date;
-                if (!sessionMapDetail[k]) sessionMapDetail[k] = [];
-                sessionMapDetail[k].push({ studentId: r.student_uid, name: r.student_name, status: r.status });
+            const clsSessionsDetail = allSessionsDetail.filter(r => r.class_code === classCode);
+
+            // Deduplicate per (student, date): keep only the most relevant record
+            // This avoids counting a student twice if two rows exist for same day/class
+            const dedupMap = {}; // key: studentId_date -> record
+            clsSessionsDetail.forEach(r => {
+                const dateKey = normalizeSessionDateKey(r.session_date);
+                if (!dateKey) return;
+                const k = r.student_uid + '_' + dateKey;
+                // Priority: present > late > excused > absent (keep best status for the day)
+                const priority = { present: 4, late: 3, excused: 2, absent: 1 };
+                const existing = dedupMap[k];
+                if (!existing || (priority[r.status] || 0) > (priority[existing.status] || 0)) {
+                    dedupMap[k] = { studentId: r.student_uid, name: r.student_name, status: r.status, date: dateKey };
+                }
             });
 
-            WEEK_DATES.forEach(date => {
-                const key = `${classCode}_${date}`;
-                const records = sessionMapDetail[key] || [];
-                records.forEach(r => {
-                    if (!studentAttMap[r.studentId]) {
-                        studentAttMap[r.studentId] = { name: r.name, id: r.studentId, present: 0, absent: 0, late: 0, excused: 0 };
-                    }
-                    const s = studentAttMap[r.studentId];
-                    if (r.status === 'present') { s.present++; totalPresent++; }
-                    else if (r.status === 'absent') { s.absent++; totalAbsent++; }
-                    else if (r.status === 'late') { s.late++; totalLate++; }
-                    else if (r.status === 'excused') { s.excused++; totalExcused++; }
-                });
+            const deduped = Object.values(dedupMap);
+
+            let totalPresent = 0, totalAbsent = 0, totalLate = 0, totalExcused = 0;
+            const studentAttMap = {};
+
+            deduped.forEach(r => {
+                if (!studentAttMap[r.studentId]) {
+                    studentAttMap[r.studentId] = { name: r.name, id: r.studentId, present: 0, absent: 0, late: 0, excused: 0 };
+                }
+                const s = studentAttMap[r.studentId];
+                if (r.status === 'present') { s.present++; totalPresent++; }
+                else if (r.status === 'absent') { s.absent++; totalAbsent++; }
+                else if (r.status === 'late') { s.late++; totalLate++; }
+                else if (r.status === 'excused') { s.excused++; totalExcused++; }
             });
 
             const total = totalPresent + totalAbsent + totalLate + totalExcused;
             const rate = total > 0 ? Math.round(((totalPresent + totalLate) / total) * 100) : 0;
+            const sessionDates = [...new Set(deduped.map(r => r.date))].sort();
+            const uniqueStudents = Object.keys(studentAttMap).length;
 
             document.getElementById('detailStats').innerHTML = `
                 <div class="detail-stat-cards">
@@ -1611,10 +1756,11 @@
                     <div class="d-stat yellow"><span class="d-stat-num">${totalExcused}</span><span class="d-stat-label">Excused</span></div>
                     <div class="d-stat blue"><span class="d-stat-num">${rate}%</span><span class="d-stat-label">Att. Rate</span></div>
                 </div>
+                <p style="font-size:12px;opacity:.6;margin-top:8px;padding:0 2px">${uniqueStudents} student${uniqueStudents !== 1 ? 's' : ''} &bull; ${sessionDates.length} session${sessionDates.length !== 1 ? 's' : ''} recorded</p>
             `;
 
-            // Student table
-            const students = Object.values(studentAttMap);
+            // Student table — sorted by name
+            const students = Object.values(studentAttMap).sort((a, b) => a.name.localeCompare(b.name));
             const tableDiv = document.getElementById('detailStudentTable');
             if (students.length === 0) {
                 tableDiv.innerHTML = '<p style="padding:24px;text-align:center;opacity:.5">No attendance data for this class yet.</p>';
@@ -1652,7 +1798,7 @@
         /*  Add / Edit Class Modal  */
         function openAddClassModal() {
             editingClassCode = null;
-            document.getElementById('classModalTitle').textContent = 'Add New Class';
+            document.getElementById('classModalTitle').textContent = 'Add New Subject';
             document.getElementById('classCode').value = '';
             document.getElementById('classCode').disabled = false;
             document.getElementById('className').value = '';
@@ -1668,7 +1814,7 @@
             const cls = (teacherData.classes || []).find(c => c.code === code);
             if (!cls) return;
 
-            document.getElementById('classModalTitle').textContent = 'Edit Class  ' + cls.name;
+            document.getElementById('classModalTitle').textContent = 'Edit Subject  ' + cls.name;
             document.getElementById('classCode').value = cls.code;
             document.getElementById('classCode').disabled = true;
             document.getElementById('className').value = cls.name;
@@ -1856,7 +2002,7 @@
             document.getElementById('classModal').hidden = true;
             populateClassDropdowns();
             renderClasses();
-            showToast(editingClassCode ? 'Class updated ' : 'Class added ');
+            showToast(editingClassCode ? 'Subject updated ' : 'Subject added ');
         }
 
 
@@ -2219,6 +2365,7 @@
                     badge.hidden = unread === 0;
 
                     const listEl = document.getElementById('notifList');
+                    if (!listEl) return;
                     if (!list.length) {
                         listEl.innerHTML = '<div class="notif-empty">No notifications yet</div>';
                         return;
