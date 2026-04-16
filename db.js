@@ -154,7 +154,6 @@ window.DB = {
     },
 
     async saveSession_attendance(teacherId, classCode, date, records) {
-        // Batch upsert all students in one call for performance
         const rows = records.map(r => ({
             teacher_id: teacherId,
             class_code: classCode,
@@ -166,9 +165,14 @@ window.DB = {
             time_out: r.timeOut || r.time_out,
             remark: r.remark,
             excuse_url: r.excuse || r.excuse_url,
-            excuse_file_name: r.excuseFileName || r.excuse_file_name
+            excuse_file_name: r.excuseFileName || r.excuse_file_name,
+            location_lat: r.location_lat || (r.location ? r.location.lat : null),
+            location_lng: r.location_lng || (r.location ? r.location.lng : null)
         }));
-        if (rows.length) await supabaseClient.from('attendease_sessions').upsert(rows);
+        if (rows.length) {
+            const { error } = await supabaseClient.from('attendease_sessions').upsert(rows, { onConflict: 'class_code,session_date,student_uid' });
+            if (error) console.error('Save Session Upsert Error:', error);
+        }
     },
 
     async getTeacherAccount() {
@@ -251,7 +255,7 @@ window.DB = {
 
             const studentName = `${studentSession.firstname} ${studentSession.lastname}`.trim();
 
-            await supabaseClient.from('attendease_sessions').upsert({
+            const { error: upsertErr } = await supabaseClient.from('attendease_sessions').upsert({
                 teacher_id: teacher.id,
                 class_code: qrPayload.cls,
                 session_date: qrPayload.date,
@@ -261,9 +265,11 @@ window.DB = {
                 time_in: currentTimeStr,
                 location_lat: options.location?.lat,
                 location_lng: options.location?.lng
-            });
+            }, { onConflict: 'class_code,session_date,student_uid' });
 
-            await supabaseClient.from('attendease_student_scan_logs').insert([{
+            if (upsertErr) console.error('Upsert Session Error:', upsertErr);
+
+            const { error: logErr } = await supabaseClient.from('attendease_student_scan_logs').insert([{
                 student_id: studentSession.id,
                 scan_date: qrPayload.date,
                 class_code: qrPayload.cls,
@@ -271,6 +277,8 @@ window.DB = {
                 scan_time: currentTimeStr,
                 status: status
             }]);
+            
+            if (logErr) console.error('Insert Log Error:', logErr);
 
             const label = status === 'late' ? 'Late ⚠' : status === 'absent' ? 'Absent ✗ (ended)' : 'Present ✓';
             return { success: true, message: `Time In at ${currentTimeStr} — ${label}`, status };
@@ -279,10 +287,10 @@ window.DB = {
             if (!record || !record.time_in) return { success: false, message: 'Must time in first.' };
             if (record.time_out) return { success: false, message: `Already timed out at ${record.time_out}.` };
 
-            await supabaseClient.from('attendease_sessions').upsert({
-                id: record.id,
+            const { error: outErr } = await supabaseClient.from('attendease_sessions').update({
                 time_out: currentTimeStr
-            });
+            }).eq('id', record.id);
+            if (outErr) console.error('Time Out Update Error:', outErr);
             return { success: true, message: `Time Out at ${currentTimeStr}`, status: 'out' };
         }
     },
