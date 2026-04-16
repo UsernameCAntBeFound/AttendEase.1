@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -362,7 +362,7 @@
             <!-- ------ EXCUSES PAGE ------ -->
             <section class="page" id="page-excuses">
                 <div style="padding:8px 0 18px;">
-                    <h2 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¹ Excuse Letters</h2>
+                    <h2 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;"> Excuse Letters</h2>
                     <p style="font-size:13px;color:var(--text-muted);">Review excuse letters submitted by students</p>
                 </div>
 
@@ -582,7 +582,7 @@
                 navigate(lastPage);
             }
 
-            // Expose for cloud-sync.js ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â called when cloud pull detects changes
+            // Expose for cloud-sync.js  called when cloud pull detects changes
             window.renderDashboard = () => {
                 loadAttendanceSession(true); // forceRender=true bypasses hash check
             };
@@ -650,7 +650,7 @@
             const sel = document.getElementById('excuseFilterClass');
             if (sel) {
                 sel.innerHTML = '<option value="">All Classes</option>' +
-                    classes.map(c => `<option value="${c.code}">${c.code} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ${c.name}</option>`).join('');
+                    classes.map(c => `<option value="${c.code}">${c.code}  ${c.name}</option>`).join('');
             }
             
             const selSec = document.getElementById('excuseFilterSection');
@@ -720,7 +720,7 @@
 
                 if (!data || !data.length) {
                     feed.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
-                        <div style="font-size:48px;margin-bottom:12px;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­</div>
+                        <div style="font-size:48px;margin-bottom:12px;"></div>
                         <p style="font-size:14px;font-weight:600;">No excuse letters yet</p>
                         <p style="font-size:12px;">Letters submitted by students will appear here</p>
                     </div>`;
@@ -731,7 +731,7 @@
                 data.forEach(row => {
                     const submittedAt = row.excuse_submitted_at
                         ? new Date(row.excuse_submitted_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                        : 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â';
+                        : '';
                     const status = row.excuse_status || 'pending';
                     const statusColors = { pending: '#f97316', reviewed: '#6366f1', accepted: '#22c55e', rejected: '#ef4444' };
                     const statusColor = statusColors[status] || '#6b7280';
@@ -748,9 +748,9 @@
                             <div>
                                 <div style="font-size:14px;font-weight:700;color:var(--text);">${row.student_name || row.student_uid}</div>
                                 <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
-                                    ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡&nbsp;${row.class_code}${sec}
-                                    &nbsp;&middot;&nbsp; ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦&nbsp;${row.session_date}
-                                    &nbsp;&middot;&nbsp; ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â&nbsp;${submittedAt}
+                                    ${row.class_code}${sec}
+                                    &nbsp;&middot;&nbsp; ${row.session_date}
+                                    &nbsp;&middot;&nbsp; ${submittedAt}
                                 </div>
                             </div>
                             <span style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:${statusColor}22;color:${statusColor};border:1px solid ${statusColor}44;">${status.toUpperCase()}</span>
@@ -759,13 +759,13 @@
                         ${isImage
                             ? `<img src="${row.excuse_url}" alt="Excuse Letter" style="max-width:100%;max-height:320px;border-radius:12px;object-fit:contain;border:1px solid var(--border);cursor:pointer;" onclick="window.open(this.src,'_blank')">`
                             : row.excuse_url
-                                ? `<button onclick="viewExcuseFile('${encodedKey}')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:10px;font-size:12px;font-weight:600;color:var(--brand);cursor:pointer;border:none;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ ${row.excuse_file_name || 'View File'}</button>`
+                                ? `<button onclick="viewExcuseFile('${encodedKey}')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:10px;font-size:12px;font-weight:600;color:var(--brand);cursor:pointer;border:none;"> ${row.excuse_file_name || 'View File'}</button>`
                                 : '<span style="font-size:12px;color:var(--text-muted);">No file attached</span>'
                         }
                         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-                            <button onclick="updateExcuseStatus('${encodedKey}','accepted')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(34,197,94,0.3);background:rgba(34,197,94,0.08);color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ Accept</button>
-                            <button onclick="updateExcuseStatus('${encodedKey}','rejected')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#dc2626;font-size:12px;font-weight:600;cursor:pointer;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Reject</button>
-                            <button onclick="updateExcuseStatus('${encodedKey}','reviewed')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.08);color:var(--brand);font-size:12px;font-weight:600;cursor:pointer;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Mark Reviewed</button>
+                            <button onclick="updateExcuseStatus('${encodedKey}','accepted')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(34,197,94,0.3);background:rgba(34,197,94,0.08);color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;"> Accept</button>
+                            <button onclick="updateExcuseStatus('${encodedKey}','rejected')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#dc2626;font-size:12px;font-weight:600;cursor:pointer;"> Reject</button>
+                            <button onclick="updateExcuseStatus('${encodedKey}','reviewed')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.08);color:var(--brand);font-size:12px;font-weight:600;cursor:pointer;"> Mark Reviewed</button>
                         </div>
                     `;
                     feed.appendChild(card);
@@ -794,7 +794,7 @@
         async function updateExcuseStatus(encodedKey, status) {
             try {
                 const row = window._excuseRows && window._excuseRows[encodedKey];
-                if (!row) { showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Cannot find excuse record.'); return; }
+                if (!row) { showToast(' Cannot find excuse record.'); return; }
                 const { error } = await window.supabase
                     .from('attendease_sessions')
                     .update({ excuse_status: status })
@@ -802,11 +802,11 @@
                     .eq('session_date', row.session_date)
                     .eq('student_uid', row.student_uid);
                 if (error) throw error;
-                showToast(`ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ Excuse letter marked as ${status}.`);
+                showToast(` Excuse letter marked as ${status}.`);
                 loadExcuseLetters();
             } catch (err) {
                 console.error('updateExcuseStatus error:', err);
-                showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Failed to update status: ' + err.message);
+                showToast(' Failed to update status: ' + err.message);
             }
         }
 
@@ -938,7 +938,7 @@
             <td class="row-num">${i + 1}</td>
             <td class="student-name" style="text-align:left;">${picHtml}${s.name}</td>
             <td class="student-id">${s.studentId}</td>
-            <td><span class="sub-text">${extraData ? extraData.section || 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â' : 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â'}</span></td>
+            <td><span class="sub-text">${extraData ? extraData.section || '' : ''}</span></td>
             <td>${s.timeIn ? `<span class="time-badge in">${s.timeIn}</span>` : '<span class="no-action"></span>'}</td>
             <td>${s.timeOut ? `<span class="time-badge out">${s.timeOut}</span>` : '<span class="no-action"></span>'}</td>
             <td>
@@ -964,7 +964,7 @@
                 ${s.excuse
                         ? `<button class="attach-btn has-file" onclick="openExcuseModal(${realIdx})" title="View submitted excuse letter">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ View
+                         View
                     </button>`
                         : `<span class="no-action"></span>`}
             </td>
@@ -1096,18 +1096,18 @@
             }
         }
 
-        /* Mark all Pending ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ Absent */
+        /* Mark all Pending  Absent */
         function markPendingAbsent() {
             const pendingStudents = currentSessionStudents.filter(s => s.status === 'pending');
             if (!pendingStudents.length) {
-                showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â No pending students to mark.');
+                showToast(' No pending students to mark.');
                 return;
             }
             pendingStudents.forEach(s => { s.status = 'absent'; });
             saveAttendanceSession();
             renderStudentTable(filterStudentsData());
             updateStats();
-            showToast(`ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ ${pendingStudents.length} pending student(s) marked as Absent.`);
+            showToast(` ${pendingStudents.length} pending student(s) marked as Absent.`);
         }
 
         /*  Clickable status filter chips  */
@@ -1167,7 +1167,7 @@
             currentExcuseIndex = idx;
 
             // Student name
-            document.getElementById('modalStudentName').textContent = 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â½ ' + student.name;
+            document.getElementById('modalStudentName').textContent = ' ' + student.name;
 
             // Show image or PDF chip
             const imgWrap = document.getElementById('excuseViewImgWrap');
@@ -1601,7 +1601,7 @@
                 for (const s of students) {
                     const studentUser = allUsers.find(u => u.uid === s.id);
                     const sData = studentUser ? await DB.getStudentData(studentUser.id) : null;
-                    const section = sData?.section || 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â';
+                    const section = sData?.section || '-';
                     if (selectedSection !== 'ALL' && section !== selectedSection) continue;
                     filteredStudents.push({ ...s, section });
                 }
@@ -1679,7 +1679,7 @@
                 for (const s of Object.values(clsMap[cls])) {
                     const studentUser = allUsers.find(u => u.uid === s.id);
                     const sData = studentUser ? await DB.getStudentData(studentUser.id) : null;
-                    const section = sData?.section || 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â';
+                    const section = sData?.section || '-';
                     if (selectedSection !== 'ALL' && section !== selectedSection) continue;
                     const total = s.present + s.absent + s.late + s.excused || 1;
                     const rate = Math.round(((s.present + s.late) / total) * 100);
@@ -1857,7 +1857,7 @@
                 const WEEK_DATES = getLastUniqueDates(clsSessions, 7);
                 const WEEK_LABELS = WEEK_DATES.map(formatShortDateLabel);
                 const dateRangeLabel = WEEK_DATES.length
-                    ? `${formatShortDateLabel(WEEK_DATES[0])}ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“${formatShortDateLabel(WEEK_DATES[WEEK_DATES.length - 1])}`
+                    ? `${formatShortDateLabel(WEEK_DATES[0])}{formatShortDateLabel(WEEK_DATES[WEEK_DATES.length - 1])}`
                     : '';
 
                 // Rate per day = (present + late) / total records that day
@@ -1867,7 +1867,7 @@
                     const key = `${cls.code}_${date}`;
                     const records = sessionMap[key];
                     if (!records || !records.length) return null;
-                    // Deduplicate by studentId ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â keep last record if duplicates
+                    // Deduplicate by studentId  keep last record if duplicates
                     const byStudent = {};
                     records.forEach(r => { byStudent[r.studentId] = r.status; });
                     const statuses = Object.values(byStudent);
@@ -1977,7 +1977,7 @@
                 </div>
             `;
 
-            // Stats ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â build from all sessions for this specific class
+            // Stats  build from all sessions for this specific class
             const allSessionsDetail = await DB.getAllSessionsReport(session.id);
             const clsSessionsDetail = allSessionsDetail.filter(r => r.class_code === classCode);
 
@@ -2028,7 +2028,7 @@
                 <p style="font-size:12px;opacity:.6;margin-top:8px;padding:0 2px">${uniqueStudents} student${uniqueStudents !== 1 ? 's' : ''} &bull; ${sessionDates.length} session${sessionDates.length !== 1 ? 's' : ''} recorded</p>
             `;
 
-            // Student table ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â sorted by name
+            // Student table  sorted by name
             // Load section data for each student, cache rows, populate section filter
             const allUsers = await DB.getAll();
             const sectionLookup = {};
@@ -2333,11 +2333,11 @@
                 if (data.ok) {
                     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Sent';
                     btn.className = 'notify-btn sent';
-                    showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ Notified! ' + (data.message || ''));
+                    showToast(' Notified! ' + (data.message || ''));
                 } else {
                     btn.textContent = ' No PSID';
                     btn.className = 'notify-btn failed';
-                    showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  ' + (data.message || 'No record found'));
+                    showToast(' ' + (data.message || 'No record found'));
                     setTimeout(() => { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Notify'; btn.className = 'notify-btn'; }, 4000);
                 }
             } catch (err) {
@@ -2351,7 +2351,7 @@
         async function notifyAllAbsent() {
             const targets = currentSessionStudents.filter(s => s.status === 'absent' || s.status === 'late');
             if (!targets.length) { showToast('No absent or late students to notify.'); return; }
-            showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ Sending ' + targets.length + ' notification(s)');
+            showToast(' Sending ' + targets.length + ' notification(s)');
             for (const s of targets) {
                 const idx = currentSessionStudents.indexOf(s);
                 await notifyGuardian(idx);
@@ -2539,7 +2539,7 @@
                     }
                 }
 
-                //  Real-time cross-tab listener (already registered in DOMContentLoaded ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â no duplicate needed)
+                //  Real-time cross-tab listener (already registered in DOMContentLoaded  no duplicate needed)
 
                 //  Fallback poll every 2s for same-origin cross-tab and local file:// edge cases
                 setInterval(() => { syncExcusesFromDB(); }, 2000);
@@ -2559,7 +2559,7 @@
                         if (unshown.length > 0) {
                             unshown.forEach(n => {
                                 n.shownToTeacher = true;
-                                pushNotification({ icon: n.icon || 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨', title: n.title, body: n.body, time: n.time });
+                                pushNotification({ icon: n.icon || '', title: n.title, body: n.body, time: n.time });
                             });
                             localStorage.setItem(notifKey, JSON.stringify(pending));
                             showToast(`${unshown.length} new excuse letter(s) received!`);
@@ -2590,7 +2590,7 @@
                             if (lastPoll) {
                                 data.forEach(row => {
                                     pushNotification({
-                                        icon: 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨',
+                                        icon: '',
                                         title: `Excuse letter from ${row.student_name || row.student_uid}`,
                                         body: `Class ${row.class_code} - ${row.session_date}`,
                                         time: new Date(row.excuse_submitted_at).toISOString(),
@@ -2857,7 +2857,7 @@
             style="max-width:90vw;max-height:80vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);cursor:default">
     </div>
 
-    <!-- Attendance polling ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â pulls directly from Render every 3s for cross-device sync -->
+    <!-- Attendance polling  pulls directly from Render every 3s for cross-device sync -->
     <script>
         const RENDER_URL = 'https://attendease-messenger.onrender.com';
 
@@ -2914,7 +2914,7 @@
                     renderStudentTable(filterStudentsData());
                 }
             } catch (err) {
-                // Server may be waking up ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â silent fail, retry next interval
+                // Server may be waking up  silent fail, retry next interval
             }
         }
 

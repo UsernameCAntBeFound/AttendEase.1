@@ -198,22 +198,48 @@ window.DB = {
 
     async getTeacherData(userId) {
         return cached('teacher_' + userId, async () => {
+            // Try loading from attendease_teacher_classes
             const { data, error } = await getSupabaseClient()
                 .from('attendease_teacher_classes')
                 .select('*')
                 .eq('teacher_id', userId);
-            if (error) console.error('getTeacherData error:', error);
-            // Normalize each DB row into the class shape the UI expects
-            const classes = (data || []).map(row => ({
-                code:             row.code || row.class_code || '',
-                name:             row.name || row.class_name || '',
-                schedule:         row.schedule || '',
-                scheduleStart:    row.schedule_start || '',
-                scheduleEnd:      row.schedule_end || '',
-                enrolled:         row.enrolled || 0,
-                enrolledStudents: row.enrolled_students || [],
-                weekly:           row.weekly || [0,0,0,0,0,0,0],
-            }));
+
+            if (!error && data && data.length > 0) {
+                // Normalize rows to the class shape the UI expects
+                // Support both old column names (class_code/class_name) and new (code/name)
+                const classes = data.map(row => ({
+                    code:             row.code || row.class_code || '',
+                    name:             row.name || row.class_name || row.code || row.class_code || '',
+                    schedule:         row.schedule || '',
+                    scheduleStart:    row.schedule_start || row.scheduleStart || '',
+                    scheduleEnd:      row.schedule_end || row.scheduleEnd || '',
+                    enrolled:         row.enrolled || 0,
+                    enrolledStudents: row.enrolled_students || row.enrolledStudents || [],
+                    weekly:           row.weekly || [0,0,0,0,0,0,0],
+                })).filter(c => c.code);
+                return { classes, sessions: {}, announcements: [] };
+            }
+
+            // Fallback: derive class list from distinct class_codes in sessions
+            if (error) console.warn('[getTeacherData] Table may not exist yet:', error.message);
+            const { data: sessionRows } = await getSupabaseClient()
+                .from('attendease_sessions')
+                .select('class_code')
+                .eq('teacher_id', userId);
+            const uniqueCodes = [...new Set((sessionRows || []).map(r => r.class_code).filter(Boolean))];
+            const classes = uniqueCodes.map(code => {
+                const sched = CLASS_SCHEDULES[code] || {};
+                return {
+                    code,
+                    name:             sched.name || code,
+                    schedule:         sched.display || '',
+                    scheduleStart:    sched.start || '',
+                    scheduleEnd:      sched.end || '',
+                    enrolled:         0,
+                    enrolledStudents: [],
+                    weekly:           [0,0,0,0,0,0,0],
+                };
+            });
             return { classes, sessions: {}, announcements: [] };
         });
     },
