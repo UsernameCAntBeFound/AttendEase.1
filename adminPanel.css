@@ -1030,6 +1030,7 @@ input[type="date"],
 input[type="number"],
 input[type="text"],
 input[type="email"],
+input[type="url"],
 input[type="password"] {
     font-family: inherit;
     font-size: 13.5px;
@@ -1048,6 +1049,35 @@ input:focus {
     border-color: var(--brand);
     background: #fff;
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+/* Designed Input with Icon */
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon .input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    color: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.input-with-icon input {
+    padding-left: 42px !important;
+}
+
+.messenger-box:focus-within {
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
 }
 
 .pw-wrap {

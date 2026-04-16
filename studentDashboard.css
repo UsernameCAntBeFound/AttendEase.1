@@ -221,6 +221,14 @@ body {
     padding-top: 2px;
 }
 
+.snotif-item-icon.info {
+    color: var(--brand);
+}
+
+.snotif-item-icon.warn {
+    color: var(--red);
+}
+
 .snotif-item-body {
     display: flex;
     flex-direction: column;

@@ -79,16 +79,6 @@
                 </svg>
                 <span>Manage Users</span>
             </button>
-            <button class="nav-item" onclick="navigate('create')" id="nav-create">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="8.5" cy="7" r="4" />
-                    <line x1="20" y1="8" x2="20" y2="14" />
-                    <line x1="23" y1="11" x2="17" y2="11" />
-                </svg>
-                <span>Create Account</span>
-            </button>
         </nav>
 
         <button class="sign-out-btn" onclick="signOut()">
@@ -188,13 +178,15 @@
                         <div class="stat-icon">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10" />
-                                <polyline points="12 6 12 12 16 14" />
+                                <rect x="3" y="3" width="7" height="7" />
+                                <rect x="14" y="3" width="7" height="7" />
+                                <rect x="3" y="14" width="7" height="7" />
+                                <rect x="14" y="14" width="7" height="7" />
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <div class="stat-value" id="recentCount">0</div>
-                            <div class="stat-label">Added This Month</div>
+                            <div class="stat-value" id="totalAdmins">0</div>
+                            <div class="stat-label">Admins</div>
                         </div>
                     </div>
                 </div>
@@ -271,6 +263,15 @@
                         <button class="role-tab" id="tab-admin" onclick="filterByRole('admin')">Admins</button>
                         <button class="role-tab" id="tab-archived" onclick="filterByRole('archived')">Archived</button>
                     </div>
+                    <button class="btn-primary create-acc-btn" onclick="navigate('create')">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="8.5" cy="7" r="4" />
+                            <line x1="20" y1="8" x2="20" y2="14" />
+                            <line x1="23" y1="11" x2="17" y2="11" />
+                        </svg>
+                        Create Account
+                    </button>
                 </div>
 
                 <div class="table-card">
@@ -343,9 +344,23 @@
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label id="idLabel">Student ID</label>
-                            <input type="text" id="cf-uid" placeholder="Auto-generated" readonly disabled>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label id="idLabel">Student ID</label>
+                                <input type="text" id="cf-uid" placeholder="Auto-generated" readonly disabled>
+                            </div>
+                            <div class="form-group" id="cf-section-group">
+                                <label>Section</label>
+                                <select id="cf-section">
+                                    <option value="">Select Section</option>
+                                    <option value="ABM-1">ABM-1</option>
+                                    <option value="ABM-2">ABM-2</option>
+                                    <option value="STEM-1">STEM-1</option>
+                                    <option value="STEM-2">STEM-2</option>
+                                    <option value="ICT-1">ICT-1</option>
+                                    <option value="ICT-2">ICT-2</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="form-row">
@@ -472,9 +487,28 @@
                     <label>Email Address</label>
                     <input type="email" id="edit-email">
                 </div>
+                <div class="form-group" id="edit-section-group" style="display:none;">
+                    <label>Section</label>
+                    <select id="edit-section">
+                        <option value="">Select Section</option>
+                        <option value="ABM-1">ABM-1</option>
+                        <option value="ABM-2">ABM-2</option>
+                        <option value="STEM-1">STEM-1</option>
+                        <option value="STEM-2">STEM-2</option>
+                        <option value="ICT-1">ICT-1</option>
+                        <option value="ICT-2">ICT-2</option>
+                    </select>
+                </div>
                 <div class="form-group" id="edit-guardian-group" style="display:none;">
-                    <label>Guardian Messenger Link <span class="optional">(optional)</span></label>
-                    <input type="url" id="edit-guardianFbLink" placeholder="https://m.me/... or Facebook URL">
+                    <label>Guardian's Messenger Contact <span class="optional">(optional)</span></label>
+                    <div class="input-with-icon messenger-box">
+                        <div class="input-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <input type="url" id="edit-guardianFbLink" placeholder="https://m.me/your-name-or-id">
+                    </div>
                 </div>
             </div>
 
@@ -679,13 +713,12 @@
             const activeUsers = users.filter(u => !u.isArchived);
             const students = activeUsers.filter(u => u.role === 'student');
             const teachers = activeUsers.filter(u => u.role === 'teacher');
-            const thisMonth = new Date().toISOString().slice(0, 7);
-            const recent = activeUsers.filter(u => u.created && u.created.startsWith(thisMonth));
+            const admins = activeUsers.filter(u => u.role === 'admin');
 
             animateCount('totalUsers', users.length);
             animateCount('totalStudents', students.length);
             animateCount('totalTeachers', teachers.length);
-            animateCount('recentCount', recent.length);
+            animateCount('totalAdmins', admins.length);
 
             const list = document.getElementById('recentList');
             const last5 = [...activeUsers].reverse().slice(0, 5);
@@ -832,14 +865,18 @@
             document.getElementById('edit-confirm').value = '';
 
             const guardianGroup = document.getElementById('edit-guardian-group');
-            if (guardianGroup) {
-                if (u.role === 'student') {
-                    guardianGroup.style.display = 'block';
-                    const sd = await DB.getStudentData(u.id);
-                    document.getElementById('edit-guardianFbLink').value = sd.guardianFbLink || '';
-                } else {
-                    guardianGroup.style.display = 'none';
-                }
+            const sectionGroup = document.getElementById('edit-section-group');
+            
+            if (u.role === 'student') {
+                if (guardianGroup) guardianGroup.style.display = 'block';
+                if (sectionGroup) sectionGroup.style.display = 'block';
+                
+                const sd = await DB.getStudentData(u.id);
+                document.getElementById('edit-guardianFbLink').value = sd.guardianFbLink || '';
+                document.getElementById('edit-section').value = sd.section || '';
+            } else {
+                if (guardianGroup) guardianGroup.style.display = 'none';
+                if (sectionGroup) sectionGroup.style.display = 'none';
             }
             switchModalTab('info');
             document.getElementById('editModal').hidden = false;
@@ -885,6 +922,7 @@
             if (u.role === 'student') {
                 const sd = await DB.getStudentData(editingUserId);
                 sd.guardianFbLink = document.getElementById('edit-guardianFbLink').value.trim();
+                sd.section = document.getElementById('edit-section').value;
                 await DB.saveStudentData(editingUserId, sd);
             }
 
@@ -955,6 +993,10 @@
             document.getElementById('role-teacher').classList.toggle('active', role === 'teacher');
             document.getElementById('role-admin').classList.toggle('active', role === 'admin');
             document.getElementById('idLabel').textContent = role === 'student' ? 'Student ID' : (role === 'teacher' ? 'Employee #' : 'Admin ID');
+            
+            // Show/hide section group
+            document.getElementById('cf-section-group').style.display = role === 'student' ? 'block' : 'none';
+            
             document.getElementById('previewRole').textContent = capitalize(role);
             document.getElementById('previewRole').className = 'preview-role-badge ' + role;
             document.getElementById('cf-uid').value = await DB.generateUid(role);
@@ -987,8 +1029,10 @@
             const un = document.getElementById('cf-username').value.trim();
             const pw = document.getElementById('cf-password').value;
             const pw2 = document.getElementById('cf-confirm').value;
+            const section = document.getElementById('cf-section').value;
 
             if (!fn || !ln || !uid || !em || !un || !pw) { showToast('Please fill in all fields ✗', 'error'); return; }
+            if (activeRole === 'student' && !section) { showToast('Please select a section ✗', 'error'); return; }
             
             // Name validation (no numbers)
             if (/\d/.test(fn) || /\d/.test(ln)) {
@@ -1014,7 +1058,8 @@
                 email: em,
                 username: un,
                 password: pw,
-                createdBy: adminSession.uid
+                createdBy: adminSession.uid,
+                section: activeRole === 'student' ? section : null
             });
             users = (await DB.getAll()).filter(u => u.id !== adminSession.id);
             resetCreateForm();
@@ -1023,7 +1068,7 @@
         }
 
         async function resetCreateForm() {
-            ['cf-firstname', 'cf-lastname', 'cf-email', 'cf-username', 'cf-password', 'cf-confirm'].forEach(id => {
+            ['cf-firstname', 'cf-lastname', 'cf-email', 'cf-username', 'cf-password', 'cf-confirm', 'cf-section'].forEach(id => {
                 document.getElementById(id).value = '';
             });
             document.getElementById('cf-uid').value = await DB.generateUid(activeRole);

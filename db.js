@@ -2,8 +2,9 @@ const SUPABASE_URL = 'https://ghcdhisbqjixzzvlmjxt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoY2RoaXNicWppeHp6dmxtanh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzkzMjAsImV4cCI6MjA5MTg1NTMyMH0.Xc4gWBRhcgY46HfLPnlqcu-ZUnQ5mPTsMtCyXKF2zSw';
 
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+window.supabase = supabaseClient;
 
-/* â”€â”€ Simple in-memory cache to avoid redundant network calls â”€â”€ */
+/* ── Simple in-memory cache to avoid redundant network calls ── */
 const _cache = {};
 const CACHE_TTL = 3000; // 3 seconds
 function cached(key, fetcher) {
@@ -18,10 +19,10 @@ function bustCache(prefix) {
 const SIMULATED_TIME = null;
 const LATE_GRACE_MINUTES = 15;
 const CLASS_SCHEDULES = {
-    ENG: { name: 'English', start: '09:00', end: '11:00', display: '9:00 AM â€“ 11:00 AM' },
-    AP: { name: 'Araling Panlipunan (AP)', start: '11:00', end: '13:00', display: '11:00 AM â€“ 1:00 PM' },
-    MATH: { name: 'Mathematics', start: '13:00', end: '15:00', display: '1:00 PM â€“ 3:00 PM' },
-    SCI: { name: 'Science', start: '15:00', end: '17:00', display: '3:00 PM â€“ 5:00 PM' },
+    ENG: { name: 'English', start: '09:00', end: '11:00', display: '9:00 AM – 11:00 AM' },
+    AP: { name: 'Araling Panlipunan (AP)', start: '11:00', end: '13:00', display: '11:00 AM – 1:00 PM' },
+    MATH: { name: 'Mathematics', start: '13:00', end: '15:00', display: '1:00 PM – 3:00 PM' },
+    SCI: { name: 'Science', start: '15:00', end: '17:00', display: '3:00 PM – 5:00 PM' },
 };
 const SKEY = 'attendease_session';
 
@@ -71,21 +72,29 @@ window.DB = {
     },
 
     async create(data) {
-        // Hash password securely through edge function or RPC. 
-        // For prototype, we'll assign default if missing, though ideally supervisor would want it hashed too on creation.
-        // We will insert via supabase. Password hashing logic defaults to crypted from client for prototype if needed, but we used pgcrypto on the backend.
-        // We'll instruct user to utilize a secure creation endpoint. Here we'll do raw insert.
-        // In PostgreSQL pgcrypto, we insert plain text into a secure RPC, but for simplicity of client creation:
-        const { data: newUser } = await supabaseClient.from('attendease_users').insert([{
+        const { data: newUser, error } = await supabaseClient.from('attendease_users').insert([{
             role: data.role,
             firstname: data.firstname,
             lastname: data.lastname,
             uid: data.uid || ('UID-' + Date.now()),
             email: data.email,
             username: data.username,
-            password_hash: data.password || 'default123', // In real app, call a 'create_user' RPC for hashing.
-            created_by: 'Admin'
+            password_hash: data.password || 'default123',
+            created_by: data.createdBy || 'Admin'
         }]).select().single();
+        
+        if (error) {
+            console.error('User creation error:', error);
+            throw error;
+        }
+
+        if (data.role === 'student' && newUser) {
+            await this.saveStudentData(newUser.id, {
+                section: data.section || '',
+                guardianFbLink: ''
+            });
+        }
+
         bustCache('users');
         return newUser;
     },
@@ -276,6 +285,27 @@ window.DB = {
 
             if (upsertErr) console.error('Upsert Session Error:', upsertErr);
 
+            // Mirror to attendease_scans for News feed and real-time tracking
+            try {
+                const studentData = await this.getStudentData(studentSession.id);
+                const sched = CLASS_SCHEDULES[qrPayload.cls];
+                await supabaseClient.from('attendease_scans').insert([{
+                    student_id: studentSession.uid,
+                    student_name: studentName,
+                    id_number: studentSession.id_number || null,
+                    section: studentData?.section || null,
+                    class_code: qrPayload.cls,
+                    class_name: sched?.name || qrPayload.cls,
+                    session_date: qrPayload.date,
+                    status: status,
+                    location_lat: options.location?.lat || null,
+                    location_lng: options.location?.lng || null,
+                    created_at: new Date().toISOString()
+                }]);
+            } catch (err) {
+                console.warn('Mirror to attendease_scans failed:', err);
+            }
+
             const { error: logErr } = await supabaseClient.from('attendease_student_scan_logs').insert([{
                 student_id: studentSession.id,
                 scan_date: qrPayload.date,
@@ -287,8 +317,8 @@ window.DB = {
             
             if (logErr) console.error('Insert Log Error:', logErr);
 
-            const label = status === 'late' ? 'Late âš ' : status === 'absent' ? 'Absent âœ— (ended)' : 'Present âœ“';
-            return { success: true, message: `Time In at ${currentTimeStr} â€” ${label}`, status };
+            const label = status === 'late' ? 'Late ⚠' : status === 'absent' ? 'Absent ✖ (ended)' : 'Present ✓';
+            return { success: true, message: `Time In at ${currentTimeStr} — ${label}`, status };
 
         } else {
             if (!record || !record.time_in) return { success: false, message: 'Must time in first.' };
@@ -300,6 +330,28 @@ window.DB = {
                 location_lng: options.location?.lng !== undefined ? options.location.lng : record.location_lng
             }).eq('id', record.id);
             if (outErr) console.error('Time Out Update Error:', outErr);
+
+            // Mirror to attendease_scans
+            try {
+                const studentData = await this.getStudentData(studentSession.id);
+                const sched = CLASS_SCHEDULES[qrPayload.cls];
+                await supabaseClient.from('attendease_scans').insert([{
+                    student_id: studentSession.uid,
+                    student_name: `${studentSession.firstname} ${studentSession.lastname}`.trim(),
+                    id_number: studentSession.id_number || null,
+                    section: studentData?.section || null,
+                    class_code: qrPayload.cls,
+                    class_name: sched?.name || qrPayload.cls,
+                    session_date: qrPayload.date,
+                    status: 'out',
+                    location_lat: options.location?.lat || null,
+                    location_lng: options.location?.lng || null,
+                    created_at: new Date().toISOString()
+                }]);
+            } catch (err) {
+                console.warn('Mirror to attendease_scans (out) failed:', err);
+            }
+
             return { success: true, message: `Time Out at ${currentTimeStr}`, status: 'out' };
         }
     },
@@ -308,6 +360,7 @@ window.DB = {
         const teacher = await this.getTeacherAccount();
         if (!teacher) return { success: false, message: 'No teacher found.' };
 
+        // Record for the specific class session
         await supabaseClient.from('attendease_sessions').upsert({
             teacher_id: teacher.id,
             class_code: classCode,
@@ -320,7 +373,26 @@ window.DB = {
             excuse_submitted_at: new Date()
         });
 
-        return { success: true, message: 'Excuse letter submitted successfully âœ“' };
+        // Record to attendease_scans for the News feed
+        try {
+            const studentData = await this.getStudentData(studentSession.id);
+            await supabaseClient.from('attendease_scans').insert([{
+                student_id: studentSession.uid,
+                student_name: `${studentSession.firstname} ${studentSession.lastname}`.trim(),
+                section: studentData.section || null,
+                class_code: classCode,
+                session_date: date,
+                status: 'excused',
+                excuse_content: dataUrl,
+                excuse_type: fileName.split('.').pop(), // Simple type from extension
+                remarks: `Excuse letter submitted for ${date}`,
+                created_at: new Date().toISOString()
+            }]);
+        } catch (err) {
+            console.warn('Could not mirror to attendease_scans:', err);
+        }
+
+        return { success: true, message: 'Excuse letter submitted successfully' };
     },
 
     async getStudentExcuse(studentUid, classCode, date) {

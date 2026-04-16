@@ -142,13 +142,7 @@
             </div>
             <div class="topbar-right">
                 <div class="search-box" id="searchBox" style="display:none">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8" />
-                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
-                    <input type="text" placeholder="Search students" id="searchInput"
-                        oninput="filterStudents()">
+                    <!-- Search box removed per user request -->
                 </div>
                 <!-- Notification bell -->
                 <div class="notif-wrapper" id="notifWrapper">
@@ -207,10 +201,7 @@
                         style="background:rgba(249,115,22,.12);color:#f97316" onclick="toggleStatusFilter('late')"><span
                             id="lateCount">0</span> Late</div>
                     <div class="stat-chip blue" id="chip-total"><span id="totalCount">0</span> Total</div>
-                    <button class="btn-accent" onclick="manualRefresh()"
-                        style="margin-left:auto;padding:6px 12px;font-size:12px">
-                         Refresh
-                    </button>
+                    <!-- Refresh button removed per user request -->
                     <button class="btn-notify-all" onclick="notifyAllAbsent()"
                         title="Send Messenger notification to all absent &amp; late guardians">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -333,6 +324,35 @@
 
             <!-- ------ NEWS PAGE ------ -->
             <section class="page" id="page-news">
+
+                <!-- Category toggle: Announcements vs Excuse Letters -->
+                <div class="news-category-toggle">
+                    <button class="news-cat-btn active" id="tCatAnnouncements"
+                        onclick="setTeacherNewsCategory('announcements')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
+                            <path d="M18 14h-8" />
+                            <path d="M15 18h-5" />
+                            <path d="M10 6h8v4h-8V6Z" />
+                        </svg>
+                        Announcements
+                    </button>
+                    <button class="news-cat-btn" id="tCatExcuses" onclick="setTeacherNewsCategory('excuses')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                        Student Excuse Letters
+                    </button>
+                </div>
+
+                <!-- ANNOUNCEMENTS VIEW -->
+                <div id="teacherAnnouncementsSection">
                 <!-- Post announcement card -->
                 <div class="card news-compose">
                     <h3 class="card-title"><span class="material-symbols-outlined"
@@ -377,338 +397,31 @@
                 </div>
                 <!-- Announcement feed -->
                 <div id="newsFeed" class="news-feed"></div>
-            </section>
-
-            <!-- ------ REPORTS PAGE ------ -->
-            <section class="page" id="page-reports">
-                <div class="reports-layout">
-                    <div class="card report-filter">
-                        <h3 class="card-title">Export Report</h3>
-                        <div class="form-group">
-                            <label>Class</label>
-                            <select id="rptClass" onchange="renderReportPreview()">
-                                <option value="ALL">All Subjects</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Date From</label>
-                            <input type="date" id="rptFrom" min="2026-04-12" max="2026-04-18"
-                                onchange="renderReportPreview()">
-                        </div>
-                        <div class="form-group">
-                            <label>Date To</label>
-                            <input type="date" id="rptTo" min="2026-04-12" max="2026-04-18"
-                                onchange="renderReportPreview()">
-                        </div>
-                        <div class="form-group">
-                            <label>Format</label>
-                            <div class="format-toggle">
-                                <button class="fmt-btn active" id="fmtCSV" onclick="setFormat('CSV')">CSV</button>
-                                <button class="fmt-btn" id="fmtPDF" onclick="setFormat('PDF')">PDF</button>
-                            </div>
-                        </div>
-                        <button class="btn-primary full" onclick="exportReport()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <polyline points="7 10 12 15 17 10" />
-                                <line x1="12" y1="15" x2="12" y2="3" />
-                            </svg>
-                            Export Report
-                        </button>
-                    </div>
-
-                    <div class="card report-preview">
-                        <h3 class="card-title">Preview</h3>
-                        <div class="preview-table-wrap">
-                            <table class="student-table">
-                                <thead>
-                                    <tr>
-                                        <th>Student Name</th>
-                                        <th>ID</th>
-                                        <th>Class</th>
-                                        <th>Present</th>
-                                        <th>Absent</th>
-                                        <th>Excused</th>
-                                        <th>Rate</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="reportPreviewBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
-            </section>
 
-            <!-- ------ CLASSES PAGE ------ -->
-            <section class="page" id="page-classes">
-                <!-- Classes grid view -->
-                <div id="classesViewGrid">
-                    <div class="classes-top-bar">
-                        <h3 class="section-heading">My Classes</h3>
-                        <button class="btn-primary" onclick="openAddClassModal()">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19" />
-                                <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                            Add Class
-                        </button>
+                <!-- EXCUSE LETTERS VIEW -->
+                <div id="teacherExcusesSection" style="display:none;">
+                    <div class="excuse-letters-section">
+                        <div id="excuseLettersFeed" class="news-feed"></div>
                     </div>
-                    <div class="classes-grid" id="classesGrid"></div>
-                </div>
-                <!-- Class detail view (hidden by default) -->
-                <div id="classDetailView" style="display:none">
-                    <button class="btn-back" onclick="closeClassDetail()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="15 18 9 12 15 6" />
-                        </svg>
-                        Back to Classes
-                    </button>
-                    <div class="detail-header card" id="detailHeader"></div>
-                    <div class="detail-stats" id="detailStats"></div>
-                    <div class="table-card" id="detailStudentTable"></div>
-                </div>
-            </section>
-
-
-
         </main>
     </div>
 
-    <!-- ------ EXCUSE LETTER VIEWER MODAL ------ -->
-    <div class="modal-overlay" id="excuseModal" hidden onclick="closeExcuseModal(event)">
-        <div class="modal-box" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3>Student Excuse Letter</h3>
-                <button class="modal-close" onclick="closeExcuseModal()">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
-            <p class="modal-student" id="modalStudentName"></p>
-
-            <!-- Image viewer -->
-            <div id="excuseViewImgWrap" hidden style="text-align:center;padding:8px 0">
-                <img id="excuseViewImg"
-                    style="max-width:100%;max-height:300px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.3);cursor:zoom-in"
-                    onclick="openFullExcuseImage()" title="Click to view full size">
-                <p style="font-size:11px;opacity:.5;margin-top:6px">Click image to view full size</p>
-            </div>
-
-            <!-- Document viewer chip -->
-            <div id="excuseViewPdfWrap" hidden
-                style="display:flex;align-items:center;gap:12px;padding:18px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:12px;cursor:pointer"
-                onclick="downloadCurrentExcuse()">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                    stroke-linecap="round" stroke-linejoin="round" style="color:var(--brand);flex-shrink:0">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                </svg>
-                <div style="flex:1;min-width:0">
-                    <div id="excuseViewPdfName"
-                        style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-                    </div>
-                    <div style="font-size:12px;opacity:.6;margin-top:3px">Click to download Document</div>
-                </div>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    style="opacity:.5;flex-shrink:0">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-            </div>
-
-            <!-- Submission timestamp -->
-            <div id="excuseViewMeta" style="font-size:11px;opacity:.5;margin-top:10px;text-align:center"></div>
-
-            <div class="modal-actions">
-                <button class="btn-ghost" onclick="closeExcuseModal()">Close</button>
-                <button class="btn-primary" onclick="markExcused()">Save &amp; Mark Excused</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ------ ADD / EDIT CLASS MODAL ------ -->
-    <div class="modal-overlay" id="classModal" hidden onclick="closeClassModal(event)">
-        <div class="modal-box modal-wide" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3 id="classModalTitle">Add New Class</h3>
-                <button class="modal-close" onclick="closeClassModal()">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body-scroll">
-                <div class="class-form-grid">
-                    <div class="form-group">
-                        <label>Class Code</label>
-                        <input type="text" id="classCode" placeholder="e.g. FIL" maxlength="10"
-                            style="text-transform:uppercase">
-                    </div>
-                    <div class="form-group">
-                        <label>Class Name</label>
-                        <input type="text" id="className" placeholder="e.g. Filipino">
-                    </div>
-                    <div class="form-group">
-                        <label>Start Time</label>
-                        <input type="time" id="classStartTime">
-                    </div>
-                    <div class="form-group">
-                        <label>End Time</label>
-                        <input type="time" id="classEndTime">
-                    </div>
-                </div>
-                <div class="student-picker">
-                    <div class="picker-header">
-                        <h4>Add Students</h4>
-                        <div class="picker-controls">
-                            <label style="font-size:11px;font-weight:600;color:var(--text-muted)">FILTER BY
-                                SECTION</label>
-                            <select id="sectionFilter" onchange="filterStudentPicker()">
-                                <option value="ALL">All Sections</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="picker-actions">
-                        <button class="btn-accent" onclick="selectAllVisible()"
-                            style="font-size:12px;padding:6px 12px">Select All Visible</button>
-                        <button class="btn-ghost" onclick="deselectAll()"
-                            style="font-size:12px;padding:6px 12px">Deselect All</button>
-                        <span class="selected-count" id="selectedCount">0 selected</span>
-                    </div>
-                    <div class="student-picker-list" id="studentPickerList"></div>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-ghost" onclick="closeClassModal()">Cancel</button>
-                <button class="btn-primary" id="saveClassBtn" onclick="saveClass()">Save Class</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ------ TEACHER PROFILE MODAL ------ -->
-    <div class="modal-overlay" id="teacherProfileModal" hidden onclick="closeTeacherProfileModal(event)">
-        <div class="modal-box teacher-profile-modal-box" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3>My Profile</h3>
-                <button class="modal-close" onclick="closeTeacherProfileModal()">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
-            <div class="teacher-profile-content">
-                <!-- Clickable avatar -->
-                <div class="t-profile-avatar-ring" id="tProfileAvatarRing"
-                    onclick="document.getElementById('teacherProfilePicInput').click()" title="Change profile picture">
-                    <div class="t-profile-avatar-initials" id="tProfileAvatarInitials">MS</div>
-                    <img id="tProfileAvatarImg" class="t-profile-avatar-photo" hidden>
-                    <div class="t-profile-avatar-overlay">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                            <circle cx="12" cy="13" r="4" />
-                        </svg>
-                    </div>
-                </div>
-                <h2 class="t-profile-name" id="tProfileName">Ms. Santos</h2>
-                <p class="t-profile-role-badge">Teacher</p>
-                <div class="profile-actions">
-                    <button class="edit-profile-btn"
-                        onclick="document.getElementById('teacherProfilePicInput').click()">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                        Edit Profile
-                    </button>
-                    <button class="remove-photo-btn" id="tRemovePhotoBtn" onclick="removeTeacherProfilePic()" hidden>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                            <path d="M10 11v6" />
-                            <path d="M14 11v6" />
-                        </svg>
-                        Remove Photo
-                    </button>
-                </div>
-            </div>
-            <div class="t-profile-info-list">
-                <div class="t-profile-info-item">
-                    <span class="t-profile-info-label">Employee ID</span>
-                    <span class="t-profile-info-value" id="tProfileId"></span>
-                </div>
-                <div class="t-profile-info-item">
-                    <span class="t-profile-info-label">Email</span>
-                    <span class="t-profile-info-value" id="tProfileEmail"></span>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-ghost" onclick="closeTeacherProfileModal()">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ------ TOAST ------ -->
-    <div class="toast" id="toast"></div>
-
-    <!-- ------ NOTIFICATION PANEL (body-level to escape all stacking contexts) ------ -->
-    <div class="notif-panel" id="notifPanel" hidden>
-        <div class="notif-panel-header">
-            <span class="notif-panel-title">Notifications</span>
-            <button class="notif-clear-btn" onclick="clearAllNotifs()" title="Clear all">Clear all</button>
-        </div>
-        <div class="notif-list" id="notifList">
-            <div class="notif-empty">No notifications yet</div>
-        </div>
-    </div>
-
     <script>
-        /* ----------------------------------------------------------------------------------------------------------------------------
-           SESSION / AUTH
-        ---------------------------------------------------------------------------------------------------------------------------- */
         const session = DB.requireAuth(['teacher']);
         if (!session) throw new Error('Not authenticated');
 
-        /* ----------------------------------------------------------------------------------------------------------------------------
-           STATE
-        ---------------------------------------------------------------------------------------------------------------------------- */
-        let teacherData = null; // loaded in DOMContentLoaded
+        let teacherData = null;
         let currentClassCode = null;
         let currentDate = null;
         let currentSessionStudents = [];
-        let currentExcuseIndex = null;
-        let reportFormat = 'CSV';
-        let qrTimerInterval = null;
-        let chartInstances = {};
         let allPresentState = false;
         let previousStatuses = [];
-        let currentStatusFilter = null;
-        let editingClassCode = null;  // null = add mode, string = edit mode
-        let newsAttachments = [];     // pending attachments for new announcement
+        let qrTimerInterval = null;
         let selectedNewsClass = null;
-        let attendanceMap = null;
-        let mapMarkers = [];
-        let autoRefreshInterval = null;
+        let newsAttachments = [];
+        let teacherNewsCategory = 'announcements';
 
-        /* ----------------------------------------------------------------------------------------------------------------------------
-           INIT
-        ---------------------------------------------------------------------------------------------------------------------------- */
         window.addEventListener('DOMContentLoaded', async () => {
             await window.initCloudDb();
             teacherData = await DB.getTeacherData(session.id);
@@ -741,7 +454,7 @@
                 navigate(lastPage);
             }
 
-            // Expose for cloud-sync.js ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â called when cloud pull detects changes
+            // Expose for cloud-sync.js — called when cloud pull detects changes
             window.renderDashboard = () => {
                 loadAttendanceSession(true); // forceRender=true bypasses hash check
             };
@@ -940,7 +653,7 @@
                 ${s.excuse
                         ? `<button class="attach-btn has-file" onclick="openExcuseModal(${realIdx})" title="View submitted excuse letter">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        \ud83d\udcc4 View
+                        📄 View
                     </button>`
                         : `<span class="no-action"></span>`}
             </td>
@@ -1118,7 +831,7 @@
             currentExcuseIndex = idx;
 
             // Student name
-            document.getElementById('modalStudentName').textContent = '\ud83d\udcce ' + student.name;
+            document.getElementById('modalStudentName').textContent = '📎 ' + student.name;
 
             // Show image or PDF chip
             const imgWrap = document.getElementById('excuseViewImgWrap');
@@ -1287,6 +1000,78 @@
         function removeAttachment(idx) {
             newsAttachments.splice(idx, 1);
             renderAttachmentPreviews();
+        }
+
+        function setTeacherNewsCategory(cat) {
+            teacherNewsCategory = cat;
+            document.querySelectorAll('.news-cat-btn').forEach(b => b.classList.remove('active'));
+            if (cat === 'announcements') {
+                document.getElementById('tCatAnnouncements').classList.add('active');
+                document.getElementById('teacherAnnouncementsSection').style.display = 'block';
+                document.getElementById('teacherExcusesSection').style.display = 'none';
+                renderAnnouncementFeed();
+            } else {
+                document.getElementById('tCatExcuses').classList.add('active');
+                document.getElementById('teacherAnnouncementsSection').style.display = 'none';
+                document.getElementById('teacherExcusesSection').style.display = 'block';
+                renderExcuseLettersFeed();
+            }
+        }
+
+        async function renderExcuseLettersFeed() {
+            const feed = document.getElementById('excuseLettersFeed');
+            feed.innerHTML = '<div class="loading-news">Loading excuse letters...</div>';
+
+            try {
+                const { data: scans, error } = await supabase
+                    .from('attendease_scans')
+                    .select('*')
+                    .not('excuse_content', 'is', null)
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+
+                if (error) throw error;
+
+                if (!scans || scans.length === 0) {
+                    feed.innerHTML = '<div class="news-empty">No excuse letters submitted yet.</div>';
+                    return;
+                }
+
+                feed.innerHTML = '';
+                scans.forEach(scan => {
+                    const card = document.createElement('div');
+                    card.className = 'news-card excuse-card';
+                    const isImage = scan.excuse_type && scan.excuse_type.startsWith('image/');
+                    card.innerHTML = `
+                        <div class="news-card-header">
+                            <div class="news-author">
+                                <div class="author-avatar">${scan.student_name.charAt(0)}</div>
+                                <div class="author-info">
+                                    <div class="author-name">${scan.student_name}</div>
+                                    <div class="post-time">${new Date(scan.created_at).toLocaleString()}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="news-card-body">
+                            <p><strong>Section:</strong> ${scan.section || 'N/A'}</p>
+                            <p><strong>Class:</strong> ${scan.class_name}</p>
+                            ${isImage ? 
+                                `<img src="${scan.excuse_content}" class="excuse-preview-img" style="max-width:200px;border-radius:8px;cursor:pointer" onclick="window.open('${scan.excuse_content}', '_blank')">` : 
+                                `<div class="excuse-doc-link" style="padding:10px;background:rgba(0,0,0,0.05);border-radius:8px;cursor:pointer" onclick="window.open('${scan.excuse_content}', '_blank')">
+                                    View Excuse Document
+                                </div>`
+                            }
+                        </div>
+                        <div class="news-card-footer" style="padding:10px;text-align:right">
+                            <button class="btn-ghost" onclick="viewStudentFullProfile('${scan.student_id}')">View Student</button>
+                        </div>
+                    `;
+                    feed.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Error loading excuse letters:", err);
+                feed.innerHTML = '<div class="news-error">Error loading excuse letters.</div>';
+            }
         }
 
         async function postAnnouncement() {
@@ -2178,11 +1963,11 @@
                 if (data.ok) {
                     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Sent';
                     btn.className = 'notify-btn sent';
-                    showToast('ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Notified! ' + data.message);
+                    showToast('✓ Notified! ' + (data.message || ''));
                 } else {
                     btn.textContent = ' No PSID';
                     btn.className = 'notify-btn failed';
-                    showToast(' ' + data.message);
+                    showToast('⚠ ' + (data.message || 'No record found'));
                     setTimeout(() => { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Notify'; btn.className = 'notify-btn'; }, 4000);
                 }
             } catch (err) {
@@ -2196,7 +1981,7 @@
         async function notifyAllAbsent() {
             const targets = currentSessionStudents.filter(s => s.status === 'absent' || s.status === 'late');
             if (!targets.length) { showToast('No absent or late students to notify.'); return; }
-            showToast('ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Sending ' + targets.length + ' notification(s)');
+            showToast('📤 Sending ' + targets.length + ' notification(s)');
             for (const s of targets) {
                 const idx = currentSessionStudents.indexOf(s);
                 await notifyGuardian(idx);
@@ -2384,7 +2169,7 @@
                     }
                 }
 
-                //  Real-time cross-tab listener (already registered in DOMContentLoaded ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no duplicate needed)
+                //  Real-time cross-tab listener (already registered in DOMContentLoaded — no duplicate needed)
 
                 //  Fallback poll every 2s for same-origin cross-tab and local file:// edge cases
                 setInterval(() => { syncExcusesFromDB(); }, 2000);
@@ -2638,7 +2423,7 @@
             style="max-width:90vw;max-height:80vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);cursor:default">
     </div>
 
-    <!-- Attendance polling ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â pulls directly from Render every 3s for cross-device sync -->
+    <!-- Attendance polling — pulls directly from Render every 3s for cross-device sync -->
     <script>
         const RENDER_URL = 'https://attendease-messenger.onrender.com';
 
@@ -2695,7 +2480,7 @@
                     renderStudentTable(filterStudentsData());
                 }
             } catch (err) {
-                // Server may be waking up ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â silent fail, retry next interval
+                // Server may be waking up — silent fail, retry next interval
             }
         }
 
