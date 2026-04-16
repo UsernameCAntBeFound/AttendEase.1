@@ -93,7 +93,7 @@
             hideError();
 
             // Small delay for UX feedback
-            setTimeout(() => {
+            setTimeout(async () => {
                 const user = await DB.authenticate(identifier, password);
 
                 if (!user) {
