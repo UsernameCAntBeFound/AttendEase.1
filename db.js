@@ -121,11 +121,18 @@ window.DB = {
 
     async getStudentData(userId) {
         const { data } = await supabaseClient.from('attendease_student_data').select('*').eq('user_id', userId).single();
-        return data || { section: '', attendance: { present: 0, absent: 0, late: 0 }, scanLog: [], excuseLetters: [] };
+        if (data) {
+            data.guardianFbLink = data.guardian_fb_link || '';
+        }
+        return data || { section: '', guardianFbLink: '', attendance: { present: 0, absent: 0, late: 0 }, scanLog: [], excuseLetters: [] };
     },
 
     async saveStudentData(userId, data) {
-        await supabaseClient.from('attendease_student_data').upsert({ user_id: userId, section: data.section });
+        await supabaseClient.from('attendease_student_data').upsert({ 
+            user_id: userId, 
+            section: data.section,
+            guardian_fb_link: data.guardianFbLink || ''
+        });
     },
 
     async getTeacherData(userId) {
