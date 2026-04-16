@@ -683,6 +683,7 @@
 
             for (const cls of allClasses) {
                 let present = 0, absent = 0, late = 0, excused = 0, total = 0;
+                // absentRecords: array of { date, hasExcuse }
                 const absentRecords = [];
 
                 // Build dedup map: keep best status per date
@@ -702,9 +703,17 @@
                 Object.entries(dateMap).forEach(([date, rec]) => {
                     total++;
                     if (rec.status === 'present') present++;
-                    else if (rec.status === 'absent') { absent++; absentRecords.push(date); }
+                    else if (rec.status === 'absent') {
+                        absent++;
+                        // Show excuse button when absent (even if excused chip not set yet)
+                        absentRecords.push({ date, hasExcuse: !!(rec.excuse_content) });
+                    }
                     else if (rec.status === 'late') late++;
-                    else if (rec.status === 'excused') excused++;
+                    else if (rec.status === 'excused') {
+                        excused++;
+                        // Also let them view/submit excuse for excused records
+                        absentRecords.push({ date, hasExcuse: !!(dateMap[date] && dateMap[date].excuse_content) });
+                    }
                 });
 
                 const attended = present + late;
@@ -714,16 +723,15 @@
                 let absentSection = '';
                 if (absentRecords.length > 0) {
                     absentSection += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">';
-                    for (const date of absentRecords) {
-                        const existingExcuse = await DB.getStudentExcuse(session.uid, cls.code, date);
-                        const hasExcuse = !!(existingExcuse && existingExcuse.dataUrl);
+                    for (const rec of absentRecords) {
+                        const { date, hasExcuse } = rec;
                         const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US',
                             { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-                        absentSection += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:rgba(255,80,80,0.08);border-radius:8px;">
-                                <span style="font-size:12px;color:var(--text-muted);">Absent · ${displayDate}</span>
+                        absentSection += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:rgba(255,80,80,0.07);border:1px solid rgba(239,68,68,0.15);border-radius:10px;">
+                                <span style="font-size:12px;color:var(--text-muted);">📅 Absent &nbsp;&middot;&nbsp; ${displayDate}</span>
                                 ${hasExcuse
-                                ? '<span style="font-size:11px;font-weight:600;color:var(--green);white-space:nowrap;">\u2713 Submitted</span>'
-                                : `<button class="std-excuse-inline-btn" onclick="openStdExcuseModal('${cls.code}','${date}','${cls.name}')" style="font-size:11px;padding:4px 10px;white-space:nowrap;">Excuse Letter</button>`
+                                ? '<span style="font-size:11px;font-weight:700;color:var(--green);white-space:nowrap;">✓ Excuse Submitted</span>'
+                                : `<button class="std-excuse-inline-btn" onclick="openStdExcuseModal('${cls.code}','${date}','${cls.name}')" style="font-size:11px;padding:4px 10px;white-space:nowrap;">📝 Excuse Letter</button>`
                             }</div>`;
                     }
                     absentSection += '</div>';
@@ -742,8 +750,9 @@
                         </div>
                         <div class="class-rate" style="color: ${rateColor}">${total > 0 ? rate + '%' : '\u2013'}</div>
                     </div>
-                    ${absentSection}
+                    ${absentSection || '<p style="font-size:12px;color:var(--text-muted);margin-top:8px;text-align:center;">No absences recorded ✔</p>'}
                 `;
+                container.appendChild(card);
             }
         }
         function navigate(page) {

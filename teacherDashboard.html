@@ -206,6 +206,13 @@
                         </svg>
                         All Present
                     </button>
+                    <button class="btn-accent" style="background:rgba(249,115,22,.15);color:#ea580c;border-color:#f97316;" onclick="markPendingAbsent()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        Mark Pending Absent
+                    </button>
                 </div>
 
                 <!-- Stats row  clickable chips -->
@@ -221,6 +228,9 @@
                     <div class="stat-chip clickable" id="chip-late"
                         style="background:rgba(249,115,22,.12);color:#f97316" onclick="toggleStatusFilter('late')"><span
                             id="lateCount">0</span> Late</div>
+                    <div class="stat-chip clickable" id="chip-pending"
+                        style="background:rgba(156,163,175,.15);color:#6b7280" onclick="toggleStatusFilter('pending')"><span
+                            id="pendingCount">0</span> Pending</div>
                     <div class="stat-chip blue" id="chip-total"><span id="totalCount">0</span> Total</div>
                     <!-- Refresh button removed per user request -->
                     <button class="btn-notify-all" onclick="notifyAllAbsent()"
@@ -673,7 +683,7 @@
                     savedRecords.push({
                         studentId: sId,
                         name: `${student.firstname} ${student.lastname}`.trim(),
-                        status: 'absent',
+                        status: 'pending',
                         timeIn: null,
                         timeOut: null,
                         remark: '',
@@ -755,6 +765,9 @@
                     </label>
                     <label class="status-radio excused-radio ${s.status === 'excused' ? 'active' : ''}">
                         <input type="radio" name="st-${realIdx}" value="excused" ${s.status === 'excused' ? 'checked' : ''} onchange="setStatus(${realIdx},'excused')">Excused
+                    </label>
+                    <label class="status-radio pending-radio ${s.status === 'pending' ? 'active' : ''}" style="${s.status === 'pending' ? 'background:rgba(156,163,175,.18);color:#6b7280;border-color:#9ca3af' : ''}">
+                        <input type="radio" name="st-${realIdx}" value="pending" ${s.status === 'pending' ? 'checked' : ''} onchange="setStatus(${realIdx},'pending')">Pending
                     </label>
                 </div>
             </td>
@@ -853,6 +866,7 @@
             document.getElementById('absentCount').textContent = list.filter(s => s.status === 'absent').length;
             document.getElementById('excusedCount').textContent = list.filter(s => s.status === 'excused').length;
             document.getElementById('lateCount').textContent = list.filter(s => s.status === 'late').length;
+            document.getElementById('pendingCount').textContent = list.filter(s => s.status === 'pending').length;
             document.getElementById('totalCount').textContent = list.length;
         }
 
@@ -893,6 +907,20 @@
             }
         }
 
+        /* Mark all Pending → Absent */
+        function markPendingAbsent() {
+            const pendingStudents = currentSessionStudents.filter(s => s.status === 'pending');
+            if (!pendingStudents.length) {
+                showToast('ℹ️ No pending students to mark.');
+                return;
+            }
+            pendingStudents.forEach(s => { s.status = 'absent'; });
+            saveAttendanceSession();
+            renderStudentTable(filterStudentsData());
+            updateStats();
+            showToast(`✅ ${pendingStudents.length} pending student(s) marked as Absent.`);
+        }
+
         /*  Clickable status filter chips  */
         function toggleStatusFilter(status) {
             if (currentStatusFilter === status) {
@@ -905,7 +933,7 @@
         }
 
         function updateFilterChipStyles() {
-            ['present', 'absent', 'excused', 'late'].forEach(s => {
+            ['present', 'absent', 'excused', 'late', 'pending'].forEach(s => {
                 const chip = document.getElementById('chip-' + s);
                 if (chip) {
                     chip.classList.toggle('chip-active', currentStatusFilter === s);

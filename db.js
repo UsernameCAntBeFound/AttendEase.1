@@ -206,7 +206,9 @@ window.DB = {
     },
 
     async saveSession_attendance(teacherId, classCode, date, records) {
-        const rows = records.map(r => ({
+        // Filter out 'pending' — those students have no action yet, so don't persist them
+        const activeRecords = records.filter(r => r.status !== 'pending');
+        const rows = activeRecords.map(r => ({
             teacher_id: teacherId,
             class_code: classCode,
             session_date: date,
@@ -224,6 +226,50 @@ window.DB = {
         if (rows.length) {
             const { error } = await supabaseClient.from('attendease_sessions').upsert(rows, { onConflict: 'class_code,session_date,student_uid' });
             if (error) console.error('Save Session Upsert Error:', error);
+        }
+    },
+
+    async getStudentExcuse(studentUid, classCode, date) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('attendease_sessions')
+                .select('excuse_url, excuse_file_name, excuse_content, excuse_submitted_at')
+                .eq('student_uid', studentUid)
+                .eq('class_code', classCode)
+                .eq('session_date', date)
+                .maybeSingle();
+            if (error || !data) return null;
+            // Return in format the modal expects
+            const dataUrl = data.excuse_url || data.excuse_content || null;
+            return dataUrl ? { dataUrl, fileName: data.excuse_file_name, submittedAt: data.excuse_submitted_at } : null;
+        } catch (e) {
+            console.warn('getStudentExcuse error:', e);
+            return null;
+        }
+    },
+
+    async submitStudentExcuse(studentSession, classCode, date, dataUrl, fileName) {
+        try {
+            const now = new Date().toISOString();
+            const { error } = await supabaseClient
+                .from('attendease_sessions')
+                .update({
+                    excuse_url: dataUrl,
+                    excuse_content: dataUrl,
+                    excuse_file_name: fileName,
+                    excuse_submitted_at: now
+                })
+                .eq('student_uid', studentSession.uid)
+                .eq('class_code', classCode)
+                .eq('session_date', date);
+            if (error) {
+                console.error('submitStudentExcuse error:', error);
+                return { success: false, message: 'Failed to submit excuse letter.' };
+            }
+            return { success: true, message: 'Excuse letter submitted successfully!' };
+        } catch (e) {
+            console.error('submitStudentExcuse exception:', e);
+            return { success: false, message: 'Error submitting excuse letter.' };
         }
     },
 
