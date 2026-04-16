@@ -2668,7 +2668,25 @@
                         const local = currentSessionStudents.find(r => r.studentId === sr.studentId);
                         if (local) {
                             // Only update if server has newer data (non-null times)
-                            if (sr.timeIn  && sr.timeIn  !== local.timeIn)  { local.timeIn  = sr.timeIn;  changed = true; }
+                            // Map server fields and check for changes
+                            const sIn = sr.time_in || sr.timeIn;
+                            const sOut = sr.time_out || sr.timeOut;
+                            const sStat = sr.status;
+                            const sLat = sr.location_lat;
+                            const sLng = sr.location_lng;
+
+                            if (sIn && sIn !== local.timeIn) { local.timeIn = sIn; changed = true; }
+                            if (sOut && sOut !== local.timeOut) { local.timeOut = sOut; changed = true; }
+                            if (sStat && sStat !== local.status) { local.status = sStat; changed = true; }
+
+                            if (sLat && sLng) {
+                                if (!local.location || local.location.lat !== parseFloat(sLat) || local.location.lng !== parseFloat(sLng)) {
+                                    local.location = { lat: parseFloat(sLat), lng: parseFloat(sLng) };
+                                    changed = true;
+                                }
+                            }
+                        }
+
                             if (sr.timeOut && sr.timeOut !== local.timeOut) { local.timeOut = sr.timeOut; changed = true; }
                             if (sr.status  && sr.status  !== local.status)  { local.status  = sr.status;  changed = true; }
                         }

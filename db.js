@@ -3,7 +3,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-/* ── Simple in-memory cache to avoid redundant network calls ── */
+/* â”€â”€ Simple in-memory cache to avoid redundant network calls â”€â”€ */
 const _cache = {};
 const CACHE_TTL = 3000; // 3 seconds
 function cached(key, fetcher) {
@@ -18,10 +18,10 @@ function bustCache(prefix) {
 const SIMULATED_TIME = null;
 const LATE_GRACE_MINUTES = 15;
 const CLASS_SCHEDULES = {
-    ENG: { name: 'English', start: '09:00', end: '11:00', display: '9:00 AM – 11:00 AM' },
-    AP: { name: 'Araling Panlipunan (AP)', start: '11:00', end: '13:00', display: '11:00 AM – 1:00 PM' },
-    MATH: { name: 'Mathematics', start: '13:00', end: '15:00', display: '1:00 PM – 3:00 PM' },
-    SCI: { name: 'Science', start: '15:00', end: '17:00', display: '3:00 PM – 5:00 PM' },
+    ENG: { name: 'English', start: '09:00', end: '11:00', display: '9:00 AM â€“ 11:00 AM' },
+    AP: { name: 'Araling Panlipunan (AP)', start: '11:00', end: '13:00', display: '11:00 AM â€“ 1:00 PM' },
+    MATH: { name: 'Mathematics', start: '13:00', end: '15:00', display: '1:00 PM â€“ 3:00 PM' },
+    SCI: { name: 'Science', start: '15:00', end: '17:00', display: '3:00 PM â€“ 5:00 PM' },
 };
 const SKEY = 'attendease_session';
 
@@ -287,15 +287,17 @@ window.DB = {
             
             if (logErr) console.error('Insert Log Error:', logErr);
 
-            const label = status === 'late' ? 'Late ⚠' : status === 'absent' ? 'Absent ✗ (ended)' : 'Present ✓';
-            return { success: true, message: `Time In at ${currentTimeStr} — ${label}`, status };
+            const label = status === 'late' ? 'Late âš ' : status === 'absent' ? 'Absent âœ— (ended)' : 'Present âœ“';
+            return { success: true, message: `Time In at ${currentTimeStr} â€” ${label}`, status };
 
         } else {
             if (!record || !record.time_in) return { success: false, message: 'Must time in first.' };
             if (record.time_out) return { success: false, message: `Already timed out at ${record.time_out}.` };
 
             const { error: outErr } = await supabaseClient.from('attendease_sessions').update({
-                time_out: currentTimeStr
+                time_out: currentTimeStr,
+                location_lat: options.location?.lat !== undefined ? options.location.lat : record.location_lat,
+                location_lng: options.location?.lng !== undefined ? options.location.lng : record.location_lng
             }).eq('id', record.id);
             if (outErr) console.error('Time Out Update Error:', outErr);
             return { success: true, message: `Time Out at ${currentTimeStr}`, status: 'out' };
@@ -318,7 +320,7 @@ window.DB = {
             excuse_submitted_at: new Date()
         });
 
-        return { success: true, message: 'Excuse letter submitted successfully ✓' };
+        return { success: true, message: 'Excuse letter submitted successfully âœ“' };
     },
 
     async getStudentExcuse(studentUid, classCode, date) {
