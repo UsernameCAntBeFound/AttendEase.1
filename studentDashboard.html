@@ -899,7 +899,9 @@
             if (!teacher) return;
             const td = await DB.getTeacherData(teacher.id);
             const announcements = td.announcements || [];
-            const allCls = td.classes || [];\n            const enrollmentChecks = await Promise.all(allCls.map(cls => DB.isStudentEnrolled(cls, session.uid)));\n            const myClasses = allCls.filter((cls, i) => enrollmentChecks[i]);
+            const allCls = td.classes || [];
+            const enrollmentChecks = await Promise.all(allCls.map(cls => DB.isStudentEnrolled(cls, session.uid)));
+            const myClasses = allCls.filter((cls, i) => enrollmentChecks[i]);
             const myClassCodes = new Set(myClasses.map(c => c.code));
             
             const classMap = {};
