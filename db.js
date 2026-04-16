@@ -1,14 +1,30 @@
 const SUPABASE_URL = 'https://ghcdhisbqjixzzvlmjxt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoY2RoaXNicWppeHp6dmxtanh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzkzMjAsImV4cCI6MjA5MTg1NTMyMH0.Xc4gWBRhcgY46HfLPnlqcu-ZUnQ5mPTsMtCyXKF2zSw';
 
-
-const supabaseClient = (function() {
-    if (window.supabase && typeof window.supabase.createClient === 'function') {
-        return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabaseClient = null;
+function getSupabaseClient() {
+    if (supabaseClient) return supabaseClient;
+    const sb = window.__supabaseModule || window.supabase;
+    if (!sb) {
+        console.error('[AttendEase] Supabase SDK not loaded yet.');
+        return null;
     }
-    return window.supabase; // It might already be the client
-})();
-window.supabase = supabaseClient;
+    if (typeof sb.createClient === 'function') {
+        supabaseClient = sb.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+        supabaseClient = sb;
+    }
+    // Keep window.supabase as the initialized client so window.supabase.from() works everywhere
+    window.supabase = supabaseClient;
+    return supabaseClient;
+}
+// Stash the raw module reference before it gets overwritten
+if (window.supabase && typeof window.supabase.createClient === 'function') {
+    window.__supabaseModule = window.supabase;
+}
+// Initialize eagerly
+(function() { try { getSupabaseClient(); } catch(e) {} })();
+document.addEventListener('DOMContentLoaded', () => { getSupabaseClient(); });
 
 /* ── Simple in-memory cache to avoid redundant network calls ── */
 const _cache = {};
@@ -70,14 +86,14 @@ window.DB = {
 
     async getAll() {
         return cached('users_all', async () => {
-            const { data, error } = await supabaseClient.from('attendease_users').select('*').or('is_archived.eq.false,is_archived.is.null');
+            const { data, error } = await getSupabaseClient().from('attendease_users').select('*').or('is_archived.eq.false,is_archived.is.null');
             if (error) console.error('getAllUsers Error:', error);
             return data || [];
         });
     },
 
     async getById(id) {
-        const { data } = await supabaseClient.from('attendease_users').select('*').eq('id', id).single();
+        const { data } = await getSupabaseClient().from('attendease_users').select('*').eq('id', id).single();
         return data || null;
     },
 
@@ -85,7 +101,7 @@ window.DB = {
         if (!supabaseClient) throw new Error("Supabase SDK failed to load. Please check your internet connection or adblocker.");
 
         // Call the RPC that uses pgcrypto for secure hashing comparison
-        const { data, error } = await supabaseClient.rpc('attendease_authenticate', {
+        const { data, error } = await getSupabaseClient().rpc('attendease_authenticate', {
             p_identifier: identifier,
             p_password: password
         });
@@ -97,13 +113,13 @@ window.DB = {
     },
 
     async usernameExists(username, excludeId = null) {
-        const { data } = await supabaseClient.from('attendease_users').select('id').eq('username', username);
+        const { data } = await getSupabaseClient().from('attendease_users').select('id').eq('username', username);
         if (!data || data.length === 0) return false;
         return data.some(u => u.id !== excludeId);
     },
 
     async create(data) {
-        const { data: newUser, error } = await supabaseClient.from('attendease_users').insert([{
+        const { data: newUser, error } = await getSupabaseClient().from('attendease_users').insert([{
             role: data.role,
             firstname: data.firstname,
             lastname: data.lastname,
@@ -131,22 +147,22 @@ window.DB = {
     },
 
     async update(id, changes) {
-        const { data } = await supabaseClient.from('attendease_users').update(changes).eq('id', id).select().single();
+        const { data } = await getSupabaseClient().from('attendease_users').update(changes).eq('id', id).select().single();
         bustCache('users');
         return data;
     },
 
     async delete(id) {
-        await supabaseClient.from('attendease_users').delete().eq('id', id);
+        await getSupabaseClient().from('attendease_users').delete().eq('id', id);
         bustCache('users');
     },
 
     async archive(id) {
-        await supabaseClient.from('attendease_users').update({ is_archived: true, archived_at: new Date() }).eq('id', id);
+        await getSupabaseClient().from('attendease_users').update({ is_archived: true, archived_at: new Date() }).eq('id', id);
     },
 
     async restore(id) {
-        await supabaseClient.from('attendease_users').update({ is_archived: false, archived_at: null }).eq('id', id);
+        await getSupabaseClient().from('attendease_users').update({ is_archived: false, archived_at: null }).eq('id', id);
     },
 
     async generateUid(role) {
@@ -162,7 +178,7 @@ window.DB = {
     async getStudentData(userId) {
         return cached('student_data_' + userId, async () => {
             try {
-                const { data } = await supabaseClient.from('attendease_student_data').select('*').eq('user_id', userId).single();
+                const { data } = await getSupabaseClient().from('attendease_student_data').select('*').eq('user_id', userId).single();
                 if (data) data.guardianFbLink = data.guardian_fb_link || '';
                 return data || { section: '', guardianFbLink: '', attendance: { present: 0, absent: 0, late: 0 } };
             } catch (e) {
@@ -172,7 +188,7 @@ window.DB = {
     },
 
     async saveStudentData(userId, data) {
-        await supabaseClient.from('attendease_student_data').upsert({ 
+        await getSupabaseClient().from('attendease_student_data').upsert({ 
             user_id: userId, 
             section: data.section,
             guardian_fb_link: data.guardianFbLink || ''
@@ -182,7 +198,7 @@ window.DB = {
 
     async getTeacherData(userId) {
         return cached('teacher_' + userId, async () => {
-            const { data } = await supabaseClient.from('attendease_teacher_classes').select('*').eq('teacher_id', userId);
+            const { data } = await getSupabaseClient().from('attendease_teacher_classes').select('*').eq('teacher_id', userId);
             return { classes: data || [], sessions: {}, announcements: [] };
         });
     },
@@ -190,7 +206,7 @@ window.DB = {
     async saveTeacherData(userId, data) {},
 
     async getSession_attendance(teacherId, classCode, date) {
-        const { data } = await supabaseClient.from('attendease_sessions')
+        const { data } = await getSupabaseClient().from('attendease_sessions')
             .select('*')
             .eq('teacher_id', teacherId)
             .eq('class_code', classCode)
@@ -199,7 +215,7 @@ window.DB = {
     },
 
     async getAllSessionsReport(teacherId) {
-        const { data } = await supabaseClient.from('attendease_sessions')
+        const { data } = await getSupabaseClient().from('attendease_sessions')
             .select('*')
             .eq('teacher_id', teacherId);
         return data || [];
@@ -224,8 +240,37 @@ window.DB = {
             location_lng: r.location_lng || (r.location ? r.location.lng : null)
         }));
         if (rows.length) {
-            const { error } = await supabaseClient.from('attendease_sessions').upsert(rows, { onConflict: 'class_code,session_date,student_uid' });
+            const { error } = await getSupabaseClient().from('attendease_sessions').upsert(rows, { onConflict: 'class_code,session_date,student_uid' });
             if (error) console.error('Save Session Upsert Error:', error);
+        }
+    },
+
+    async getAttendanceSummary(studentUid) {
+        try {
+            const { data, error } = await getSupabaseClient()
+                .from('attendease_sessions')
+                .select('class_code, session_date, status')
+                .eq('student_uid', studentUid);
+            if (error) { console.error('getAttendanceSummary error:', error); return { present: 0, absent: 0, late: 0 }; }
+            // Deduplicate: best status per class+date
+            const priority = { present: 4, late: 3, excused: 2, absent: 1 };
+            const seen = {};
+            (data || []).forEach(r => {
+                const key = `${r.class_code}|${r.session_date}`;
+                if (!seen[key] || (priority[r.status] || 0) > (priority[seen[key]] || 0)) {
+                    seen[key] = r.status;
+                }
+            });
+            let present = 0, absent = 0, late = 0;
+            Object.values(seen).forEach(st => {
+                if (st === 'present') present++;
+                else if (st === 'absent' || st === 'excused') absent++;
+                else if (st === 'late') late++;
+            });
+            return { present, absent, late };
+        } catch(e) {
+            console.error('getAttendanceSummary exception:', e);
+            return { present: 0, absent: 0, late: 0 };
         }
     },
 
@@ -233,14 +278,13 @@ window.DB = {
         try {
             const { data, error } = await supabaseClient
                 .from('attendease_sessions')
-                .select('excuse_url, excuse_file_name, excuse_content, excuse_submitted_at')
+                .select('excuse_url, excuse_file_name, excuse_submitted_at')
                 .eq('student_uid', studentUid)
                 .eq('class_code', classCode)
                 .eq('session_date', date)
                 .maybeSingle();
             if (error || !data) return null;
-            // Return in format the modal expects
-            const dataUrl = data.excuse_url || data.excuse_content || null;
+            const dataUrl = data.excuse_url || null;
             return dataUrl ? { dataUrl, fileName: data.excuse_file_name, submittedAt: data.excuse_submitted_at } : null;
         } catch (e) {
             console.warn('getStudentExcuse error:', e);
@@ -248,30 +292,92 @@ window.DB = {
         }
     },
 
-    async submitStudentExcuse(studentSession, classCode, date, dataUrl, fileName) {
+    async submitStudentExcuse(studentSession, classCode, date, dataUrl, fileName, className, remarks) {
         try {
             const now = new Date().toISOString();
-            const { error } = await supabaseClient
+            const client = getSupabaseClient();
+
+            // Find the session record to get the teacher_id
+            const { data: existingRow } = await client
                 .from('attendease_sessions')
-                .update({
-                    excuse_url: dataUrl,
-                    excuse_content: dataUrl,
-                    excuse_file_name: fileName,
-                    excuse_submitted_at: now
-                })
+                .select('teacher_id')
                 .eq('student_uid', studentSession.uid)
                 .eq('class_code', classCode)
-                .eq('session_date', date);
-            if (error) {
-                console.error('submitStudentExcuse error:', error);
-                return { success: false, message: 'Failed to submit excuse letter.' };
+                .eq('session_date', date)
+                .maybeSingle();
+
+            const teacherId = existingRow?.teacher_id || null;
+
+            // Upsert excuse data into the session record
+            const upsertData = {
+                student_uid: studentSession.uid,
+                student_name: `${studentSession.firstname} ${studentSession.lastname}`.trim(),
+                class_code: classCode,
+                session_date: date,
+                excuse_url: dataUrl,
+                excuse_file_name: fileName,
+                excuse_submitted_at: now,
+                excuse_remarks: remarks || '',
+                excuse_status: 'pending',
+                teacher_id: teacherId,
+                status: existingRow ? undefined : 'excused', // only set if new row
+            };
+            // Remove undefined keys
+            Object.keys(upsertData).forEach(k => upsertData[k] === undefined && delete upsertData[k]);
+
+            const { error: upsertError } = await client
+                .from('attendease_sessions')
+                .upsert(upsertData, { onConflict: 'class_code,session_date,student_uid' });
+
+            if (upsertError) {
+                // Fallback: try a plain update if upsert fails
+                console.warn('Upsert failed, trying update:', upsertError);
+                const { error: updateError } = await client
+                    .from('attendease_sessions')
+                    .update({
+                        excuse_url: dataUrl,
+                        excuse_file_name: fileName,
+                        excuse_submitted_at: now,
+                        excuse_remarks: remarks || '',
+                        excuse_status: 'pending',
+                    })
+                    .eq('student_uid', studentSession.uid)
+                    .eq('class_code', classCode)
+                    .eq('session_date', date);
+
+                if (updateError) {
+                    console.error('submitStudentExcuse update error:', updateError);
+                    return { success: false, message: 'Failed to save excuse: ' + updateError.message };
+                }
             }
-            return { success: true, message: 'Excuse letter submitted successfully!' };
+
+            // Push notification to teacher's local store (cross-tab via localStorage)
+            if (teacherId) {
+                try {
+                    const notifKey = `attendease_notifs_teacher_${teacherId}`;
+                    let notifs = [];
+                    try { notifs = JSON.parse(localStorage.getItem(notifKey) || '[]'); } catch(e) {}
+                    notifs.unshift({
+                        id: Date.now() + Math.random(),
+                        read: false,
+                        icon: '📨',
+                        title: `Excuse letter from ${studentSession.firstname} ${studentSession.lastname}`.trim(),
+                        body: `${className || classCode} · ${date}`,
+                        time: now,
+                    });
+                    if (notifs.length > 50) notifs.splice(50);
+                    localStorage.setItem(notifKey, JSON.stringify(notifs));
+                } catch(e) { /* non-fatal */ }
+            }
+
+            return { success: true, message: 'Excuse letter submitted successfully!', teacherId };
         } catch (e) {
             console.error('submitStudentExcuse exception:', e);
-            return { success: false, message: 'Error submitting excuse letter.' };
+            return { success: false, message: 'Error submitting excuse letter: ' + e.message };
         }
     },
+
+
 
     async getTeacherAccount() {
         const users = await this.getAll();
@@ -321,7 +427,7 @@ window.DB = {
         const currentTimeStr = this.formatTime12h(now);
         
         let record;
-        const { data } = await supabaseClient.from('attendease_sessions')
+        const { data } = await getSupabaseClient().from('attendease_sessions')
             .select('*')
             .eq('class_code', qrPayload.cls)
             .eq('session_date', qrPayload.date)
@@ -353,7 +459,7 @@ window.DB = {
 
             const studentName = `${studentSession.firstname} ${studentSession.lastname}`.trim();
 
-            const { error: upsertErr } = await supabaseClient.from('attendease_sessions').upsert({
+            const { error: upsertErr } = await getSupabaseClient().from('attendease_sessions').upsert({
                 teacher_id: teacher.id,
                 class_code: qrPayload.cls,
                 session_date: qrPayload.date,
@@ -371,7 +477,7 @@ window.DB = {
             try {
                 const studentData = await this.getStudentData(studentSession.id);
                 const sched = CLASS_SCHEDULES[qrPayload.cls];
-                await supabaseClient.from('attendease_scans').insert([{
+                await getSupabaseClient().from('attendease_scans').insert([{
                     student_id: studentSession.uid,
                     student_name: studentName,
                     id_number: studentSession.id_number || null,
@@ -388,7 +494,7 @@ window.DB = {
                 console.warn('Mirror to attendease_scans failed:', err);
             }
 
-            const { error: logErr } = await supabaseClient.from('attendease_student_scan_logs').insert([{
+            const { error: logErr } = await getSupabaseClient().from('attendease_student_scan_logs').insert([{
                 student_id: studentSession.id,
                 scan_date: qrPayload.date,
                 class_code: qrPayload.cls,
@@ -406,7 +512,7 @@ window.DB = {
             if (!record || !record.time_in) return { success: false, message: 'Must time in first.' };
             if (record.time_out) return { success: false, message: `Already timed out at ${record.time_out}.` };
 
-            const { error: outErr } = await supabaseClient.from('attendease_sessions').update({
+            const { error: outErr } = await getSupabaseClient().from('attendease_sessions').update({
                 time_out: currentTimeStr,
                 location_lat: options.location?.lat !== undefined ? options.location.lat : record.location_lat,
                 location_lng: options.location?.lng !== undefined ? options.location.lng : record.location_lng
@@ -417,7 +523,7 @@ window.DB = {
             try {
                 const studentData = await this.getStudentData(studentSession.id);
                 const sched = CLASS_SCHEDULES[qrPayload.cls];
-                await supabaseClient.from('attendease_scans').insert([{
+                await getSupabaseClient().from('attendease_scans').insert([{
                     student_id: studentSession.uid,
                     student_name: `${studentSession.firstname} ${studentSession.lastname}`.trim(),
                     id_number: studentSession.id_number || null,
@@ -438,54 +544,7 @@ window.DB = {
         }
     },
 
-    async submitStudentExcuse(studentSession, classCode, date, dataUrl, fileName) {
-        const teacher = await this.getTeacherAccount();
-        if (!teacher) return { success: false, message: 'No teacher found.' };
 
-        // Record for the specific class session
-        await supabaseClient.from('attendease_sessions').upsert({
-            teacher_id: teacher.id,
-            class_code: classCode,
-            session_date: date,
-            student_uid: studentSession.uid,
-            student_name: `${studentSession.firstname} ${studentSession.lastname}`.trim(),
-            status: 'excused',
-            excuse_url: dataUrl,
-            excuse_file_name: fileName,
-            excuse_submitted_at: new Date()
-        });
-
-        // Record to attendease_scans for the News feed
-        try {
-            const studentData = await this.getStudentData(studentSession.id);
-            await supabaseClient.from('attendease_scans').insert([{
-                student_id: studentSession.uid,
-                student_name: `${studentSession.firstname} ${studentSession.lastname}`.trim(),
-                section: studentData.section || null,
-                class_code: classCode,
-                session_date: date,
-                status: 'excused',
-                excuse_content: dataUrl,
-                excuse_type: fileName.split('.').pop(), // Simple type from extension
-                remarks: `Excuse letter submitted for ${date}`,
-                created_at: new Date().toISOString()
-            }]);
-        } catch (err) {
-            console.warn('Could not mirror to attendease_scans:', err);
-        }
-
-        return { success: true, message: 'Excuse letter submitted successfully' };
-    },
-
-    async getStudentExcuse(studentUid, classCode, date) {
-        const { data } = await supabaseClient.from('attendease_sessions')
-            .select('excuse_url, excuse_file_name, excuse_submitted_at')
-            .eq('class_code', classCode)
-            .eq('session_date', date)
-            .eq('student_uid', studentUid)
-            .single();
-        return data ? { dataUrl: data.excuse_url, fileName: data.excuse_file_name, submittedAt: data.excuse_submitted_at } : null;
-    },
 
     setSession(user) {
         const { password_hash, ...safe } = user;

@@ -2139,6 +2139,189 @@ body {
     background: rgba(34, 197, 94, 0.14);
 }
 
+/* ===== EXCUSE LETTER MODAL ===== */
+.std-excuse-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.std-excuse-box {
+    background: var(--surface, #1e1e2e);
+    border: 1px solid var(--border, rgba(255,255,255,0.1));
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    max-width: 460px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.std-excuse-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.std-excuse-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text, #fff);
+}
+
+.std-excuse-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted, #888);
+    padding: 4px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+}
+.std-excuse-close:hover { background: rgba(255,255,255,0.08); }
+
+.std-excuse-subtitle {
+    font-size: 12px;
+    color: var(--text-muted, #888);
+    margin: 0;
+}
+
+.std-excuse-existing {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.std-excuse-exists-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green, #22c55e);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.std-excuse-meta {
+    font-size: 11px;
+    color: var(--text-muted, #888);
+    margin-top: 4px;
+}
+
+.std-upload-zone {
+    border: 2px dashed var(--border, rgba(255,255,255,0.15));
+    border-radius: 14px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: rgba(99,102,241,0.03);
+}
+.std-upload-zone:hover {
+    border-color: var(--brand, #6366f1);
+    background: rgba(99,102,241,0.07);
+}
+
+.std-upload-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: rgba(99,102,241,0.1);
+    border-radius: 14px;
+    margin: 0 auto 12px;
+    color: var(--brand, #6366f1);
+}
+
+.std-upload-zone p {
+    margin: 0 0 4px;
+    font-size: 13px;
+    color: var(--text, #fff);
+}
+
+.std-upload-zone span {
+    font-size: 11px;
+    color: var(--text-muted, #888);
+}
+
+.std-excuse-img-preview {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 10px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+.std-excuse-file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(99,102,241,0.1);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--brand, #6366f1);
+}
+
+.std-excuse-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.std-excuse-cancel {
+    flex: 1;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid var(--border, rgba(255,255,255,0.1));
+    background: rgba(255,255,255,0.05);
+    color: var(--text, #fff);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+}
+.std-excuse-cancel:hover { background: rgba(255,255,255,0.1); }
+
+.std-excuse-submit {
+    flex: 2;
+    padding: 10px;
+    border-radius: 12px;
+    border: none;
+    background: var(--brand, #6366f1);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: opacity 0.2s;
+}
+.std-excuse-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+.std-excuse-submit:not(:disabled):hover { opacity: 0.88; }
+
+
 /* Progress bar */
 .class-progress-bar {
     width: 100%;

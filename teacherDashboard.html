@@ -80,16 +80,15 @@
                 </svg>
                 <span>QR Code</span>
             </button>
-            <button class="nav-item" onclick="navigate('news')" id="nav-news">
+            <button class="nav-item" onclick="navigate('excuses')" id="nav-excuses">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
-                    <path
-                        d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
-                    <path d="M18 14h-8" />
-                    <path d="M15 18h-5" />
-                    <path d="M10 6h8v4h-8V6Z" />
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
                 </svg>
-                <span>News</span>
+                <span>Excuses</span>
             </button>
             <button class="nav-item" onclick="navigate('reports')" id="nav-reports">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -354,90 +353,38 @@
                 </div>
             </section>
 
-            <!-- ------ NEWS PAGE ------ -->
-            <section class="page" id="page-news">
-
-                <!-- Category toggle: Announcements vs Excuse Letters -->
-                <div class="news-category-toggle">
-                    <button class="news-cat-btn active" id="tCatAnnouncements"
-                        onclick="setTeacherNewsCategory('announcements')">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
-                            <path d="M18 14h-8" />
-                            <path d="M15 18h-5" />
-                            <path d="M10 6h8v4h-8V6Z" />
-                        </svg>
-                        Announcements
-                    </button>
-                    <button class="news-cat-btn" id="tCatExcuses" onclick="setTeacherNewsCategory('excuses')">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <line x1="16" y1="13" x2="8" y2="13" />
-                            <line x1="16" y1="17" x2="8" y2="17" />
-                        </svg>
-                        Student Excuse Letters
-                    </button>
+            <!-- ------ EXCUSES PAGE ------ -->
+            <section class="page" id="page-excuses">
+                <div style="padding:8px 0 18px;">
+                    <h2 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">📋 Excuse Letters</h2>
+                    <p style="font-size:13px;color:var(--text-muted);">Review excuse letters submitted by students</p>
                 </div>
 
-                <!-- ANNOUNCEMENTS VIEW -->
-                <div id="teacherAnnouncementsSection">
-                <!-- Post announcement card -->
-                <div class="card news-compose">
-                    <h3 class="card-title"><span class="material-symbols-outlined"
-                            style="font-size:18px;vertical-align:middle;margin-right:4px;">news</span> Post Announcement
-                    </h3>
-                    <div class="form-group">
-                        <label>Choose Class</label>
-                        <div class="news-class-pills" id="newsClassPills"></div>
-                    </div>
-                    <div class="compose-toolbar">
-                        <button class="toolbar-btn" onclick="formatText('bold')" title="Bold"><b>B</b></button>
-                        <button class="toolbar-btn" onclick="formatText('italic')" title="Italic"><i>I</i></button>
-                        <button class="toolbar-btn" onclick="formatText('underline')"
-                            title="Underline"><u>U</u></button>
-                        <button class="toolbar-btn" onclick="formatText('insertUnorderedList')"
-                            title="Bullet List">
-                            List</button>
-                        <div class="toolbar-divider"></div>
-                        <button class="toolbar-btn" onclick="document.getElementById('newsFileInput').click()"
-                            title="Attach File">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path
-                                    d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-                            </svg>
-                            Attach
-                        </button>
-                        <input type="file" id="newsFileInput" accept="image/*,.pdf,.doc,.docx" hidden multiple
-                            onchange="handleNewsAttachments(event)">
-                    </div>
-                    <div class="compose-editor" contenteditable="true" id="newsEditor"
-                        placeholder="Write your announcement..."></div>
-                    <div class="compose-attachments" id="newsAttachmentPreview"></div>
-                    <button class="btn-primary full" onclick="postAnnouncement()" style="margin-top:12px">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="22" y1="2" x2="11" y2="13" />
-                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                        </svg>
-                        Post Announcement
-                    </button>
-                </div>
-                <!-- Announcement feed -->
-                <div id="newsFeed" class="news-feed"></div>
+                <!-- Filter bar -->
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+                    <select id="excuseFilterClass" onchange="loadExcuseLetters()" style="padding:7px 12px;border-radius:10px;border:1px solid var(--border);background:var(--glass);color:var(--text);font-size:13px;">
+                        <option value="">All Classes</option>
+                    </select>
+                    <select id="excuseFilterSection" onchange="loadExcuseLetters()" style="padding:7px 12px;border-radius:10px;border:1px solid var(--border);background:var(--glass);color:var(--text);font-size:13px;">
+                        <option value="">All Sections</option>
+                    </select>
+                    <select id="excuseFilterStatus" onchange="loadExcuseLetters()" style="padding:7px 12px;border-radius:10px;border:1px solid var(--border);background:var(--glass);color:var(--text);font-size:13px;">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="reviewed">Reviewed</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
                 </div>
 
-                <!-- EXCUSE LETTERS VIEW -->
-                <div id="teacherExcusesSection" style="display:none;">
-                    <div class="excuse-letters-section">
-                        <div id="excuseLettersFeed" class="news-feed"></div>
-                    </div>
-                </div>
+                <!-- Excuse letters feed -->
+                <div id="excuseLettersFeed" style="display:flex;flex-direction:column;gap:14px;"></div>
+            </section>
 
+            <!-- ------ NEWS PAGE (hidden, kept for compatibility) ------ -->
+            <section class="page" id="page-news" style="display:none!important;">
+                <div id="teacherAnnouncementsSection"><div id="newsFeed"></div></div>
+                <div id="teacherExcusesSection" style="display:none;"></div>
             </section>
 
             <!-- ------ REPORTS PAGE ------ -->
@@ -457,6 +404,18 @@
                             <div class="form-group">
                                 <label>To</label>
                                 <input type="date" id="rptTo" onchange="renderReportPreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>Section</label>
+                                <select id="rptSection" onchange="renderReportPreview()">
+                                    <option value="ALL">All Sections</option>
+                                    <option value="ABM-1">ABM-1</option>
+                                    <option value="ABM-2">ABM-2</option>
+                                    <option value="STEM-1">STEM-1</option>
+                                    <option value="STEM-2">STEM-2</option>
+                                    <option value="ICT-1">ICT-1</option>
+                                    <option value="ICT-2">ICT-2</option>
+                                </select>
                             </div>
                             <div class="report-actions">
                                 <button class="btn-primary" onclick="exportPDF()">Export PDF</button>
@@ -602,26 +561,194 @@
         /* ----------------------------------------------------------------------------------------------------------------------------
            NAVIGATION
         ---------------------------------------------------------------------------------------------------------------------------- */
-        const PAGE_TITLES = { attendance: 'Attendance', qrcode: 'QR Code', news: 'News', reports: 'Reports', classes: 'Subjects' };
+        const PAGE_TITLES = { attendance: 'Attendance', qrcode: 'QR Code', excuses: 'Excuse Letters', news: 'News', reports: 'Reports', classes: 'Subjects' };
 
         async function navigate(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            document.getElementById('page-' + page).classList.add('active');
-            document.getElementById('nav-' + page).classList.add('active');
-            document.getElementById('pageTitle').textContent = PAGE_TITLES[page];
+            const pageEl = document.getElementById('page-' + page);
+            const navEl = document.getElementById('nav-' + page);
+            if (pageEl) pageEl.classList.add('active');
+            if (navEl) navEl.classList.add('active');
+            document.getElementById('pageTitle').textContent = PAGE_TITLES[page] || page;
             document.getElementById('searchBox').style.display = page === 'attendance' ? '' : 'none';
             if (page === 'attendance') {
-                initAttendanceMap(); // Ensure initialized at least once
+                initAttendanceMap();
                 loadAttendanceSession();
                 if (attendanceMap) setTimeout(() => attendanceMap.invalidateSize(), 100);
             }
             if (page === 'classes') { teacherData = await DB.getTeacherData(session.id) || {}; renderClasses(); closeClassDetail(); }
-            if (page === 'news') { renderNewsFeed(); renderNewsClassPills(); }
-
-            // Persist last-visited tab so refresh stays on same page
+            if (page === 'excuses') { await populateExcuseClassFilter(); loadExcuseLetters(); }
             sessionStorage.setItem('teacher_last_page', page);
         }
+
+        async function populateExcuseClassFilter() {
+            const td = await DB.getTeacherData(session.id) || {};
+            const classes = td.classes || [];
+            const sel = document.getElementById('excuseFilterClass');
+            if (sel) {
+                sel.innerHTML = '<option value="">All Classes</option>' +
+                    classes.map(c => `<option value="${c.code}">${c.code} — ${c.name}</option>`).join('');
+            }
+            
+            const selSec = document.getElementById('excuseFilterSection');
+            if (selSec) {
+                // Using canonical sections to ensure empty sections are still shown in the filter
+                const sections = ['ABM-1', 'ABM-2', 'STEM-1', 'STEM-2', 'ICT-1', 'ICT-2'];
+                selSec.innerHTML = '<option value="">All Sections</option>' +
+                    sections.map(s => `<option value="${s}">${s}</option>`).join('');
+            }
+        }
+
+        // Maps student_uid -> section
+        let _sectionMapCache = null;
+        async function buildSectionMap() {
+            if (_sectionMapCache) return _sectionMapCache;
+            try {
+                const allUsers = await DB.getAll();
+                const students = allUsers.filter(u => u.role === 'student');
+                const map = {};
+                await Promise.all(students.map(async s => {
+                    try {
+                        const sd = await DB.getStudentData(s.id);
+                        map[s.uid] = sd?.section || '';
+                    } catch(e) { map[s.uid] = ''; }
+                }));
+                _sectionMapCache = map;
+                setTimeout(() => { _sectionMapCache = null; }, 30000);
+                return map;
+            } catch(e) {
+                console.warn('buildSectionMap error:', e.message);
+                return {};
+            }
+        }
+
+        async function loadExcuseLetters() {
+            const feed = document.getElementById('excuseLettersFeed');
+            if (!feed) return;
+            feed.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">Loading...</div>';
+
+            try {
+                const classFilter = document.getElementById('excuseFilterClass')?.value || '';
+                const sectionFilter = document.getElementById('excuseFilterSection')?.value || '';
+                const statusFilter = document.getElementById('excuseFilterStatus')?.value || '';
+
+                const sMap = await buildSectionMap();
+
+                // Query attendease_sessions for records with excuse_url set
+                let query = window.supabase
+                    .from('attendease_sessions')
+                    .select('*')
+                    .eq('teacher_id', session.id)
+                    .not('excuse_url', 'is', null)
+                    .order('excuse_submitted_at', { ascending: false });
+
+                if (classFilter) query = query.eq('class_code', classFilter);
+
+                let { data, error } = await query;
+                if (error) throw error;
+
+                // Client-side filters
+                if (data && sectionFilter) {
+                    data = data.filter(r => sMap[r.student_uid] === sectionFilter);
+                }
+                if (data && statusFilter) {
+                    data = data.filter(r => (r.excuse_status || 'pending') === statusFilter);
+                }
+
+                if (!data || !data.length) {
+                    feed.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+                        <div style="font-size:48px;margin-bottom:12px;">📭</div>
+                        <p style="font-size:14px;font-weight:600;">No excuse letters yet</p>
+                        <p style="font-size:12px;">Letters submitted by students will appear here</p>
+                    </div>`;
+                    return;
+                }
+
+                feed.innerHTML = '';
+                data.forEach(row => {
+                    const submittedAt = row.excuse_submitted_at
+                        ? new Date(row.excuse_submitted_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                        : '—';
+                    const status = row.excuse_status || 'pending';
+                    const statusColors = { pending: '#f97316', reviewed: '#6366f1', accepted: '#22c55e', rejected: '#ef4444' };
+                    const statusColor = statusColors[status] || '#6b7280';
+                    const sec = sMap[row.student_uid] ? ` &middot; Sect: ${sMap[row.student_uid]}` : '';
+                    const isImage = row.excuse_url && row.excuse_url.startsWith('data:image/');
+                    const escapedUrl = row.excuse_url ? row.excuse_url.replace(/'/g, "\\'") : '';
+                    const rowKey = `${row.class_code}|${row.session_date}|${row.student_uid}`;
+                    const encodedKey = encodeURIComponent(rowKey);
+
+                    const card = document.createElement('div');
+                    card.style.cssText = 'background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;';
+                    card.innerHTML = `
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+                            <div>
+                                <div style="font-size:14px;font-weight:700;color:var(--text);">${row.student_name || row.student_uid}</div>
+                                <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
+                                    📚&nbsp;${row.class_code}${sec}
+                                    &nbsp;&middot;&nbsp; 📅&nbsp;${row.session_date}
+                                    &nbsp;&middot;&nbsp; 🕐&nbsp;${submittedAt}
+                                </div>
+                            </div>
+                            <span style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:${statusColor}22;color:${statusColor};border:1px solid ${statusColor}44;">${status.toUpperCase()}</span>
+                        </div>
+                        ${row.excuse_remarks ? `<div style="font-size:13px;color:var(--text-muted);padding:10px 14px;background:rgba(99,102,241,0.06);border-radius:10px;border-left:3px solid var(--brand);">${row.excuse_remarks}</div>` : ''}
+                        ${isImage
+                            ? `<img src="${row.excuse_url}" alt="Excuse Letter" style="max-width:100%;max-height:320px;border-radius:12px;object-fit:contain;border:1px solid var(--border);cursor:pointer;" onclick="window.open(this.src,'_blank')">`
+                            : row.excuse_url
+                                ? `<button onclick="viewExcuseFile('${encodedKey}')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:10px;font-size:12px;font-weight:600;color:var(--brand);cursor:pointer;border:none;">📄 ${row.excuse_file_name || 'View File'}</button>`
+                                : '<span style="font-size:12px;color:var(--text-muted);">No file attached</span>'
+                        }
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+                            <button onclick="updateExcuseStatus('${encodedKey}','accepted')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(34,197,94,0.3);background:rgba(34,197,94,0.08);color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;">✓ Accept</button>
+                            <button onclick="updateExcuseStatus('${encodedKey}','rejected')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#dc2626;font-size:12px;font-weight:600;cursor:pointer;">✗ Reject</button>
+                            <button onclick="updateExcuseStatus('${encodedKey}','reviewed')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.08);color:var(--brand);font-size:12px;font-weight:600;cursor:pointer;">👁 Mark Reviewed</button>
+                        </div>
+                    `;
+                    feed.appendChild(card);
+                });
+                // Store rows in memory for viewExcuseFile lookup
+                window._excuseRows = {};
+                data.forEach(r => { window._excuseRows[encodeURIComponent(`${r.class_code}|${r.session_date}|${r.student_uid}`)] = r; });
+            } catch (err) {
+                console.error('loadExcuseLetters error:', err);
+                feed.innerHTML = '<div style="padding:20px;color:var(--red);font-size:13px;">Error loading excuse letters: ' + err.message + '</div>';
+            }
+        }
+
+        function viewExcuseFile(encodedKey) {
+            const row = window._excuseRows && window._excuseRows[encodedKey];
+            if (!row || !row.excuse_url) { showToast('No file available.'); return; }
+            // Open data URL in a new tab
+            const win = window.open('', '_blank');
+            if (row.excuse_url.startsWith('data:image/')) {
+                win.document.write(`<html><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${row.excuse_url}" style="max-width:100%;max-height:100vh;object-fit:contain;"></body></html>`);
+            } else {
+                win.document.write(`<html><body style="margin:0;"><embed src="${row.excuse_url}" width="100%" height="100%" style="height:100vh;"></body></html>`);
+            }
+        }
+
+        async function updateExcuseStatus(encodedKey, status) {
+            try {
+                const row = window._excuseRows && window._excuseRows[encodedKey];
+                if (!row) { showToast('❌ Cannot find excuse record.'); return; }
+                const { error } = await window.supabase
+                    .from('attendease_sessions')
+                    .update({ excuse_status: status })
+                    .eq('class_code', row.class_code)
+                    .eq('session_date', row.session_date)
+                    .eq('student_uid', row.student_uid);
+                if (error) throw error;
+                showToast(`✅ Excuse letter marked as ${status}.`);
+                loadExcuseLetters();
+            } catch (err) {
+                console.error('updateExcuseStatus error:', err);
+                showToast('❌ Failed to update status: ' + err.message);
+            }
+        }
+
+
 
         function toggleSidebar() {
             if (window.innerWidth > 900) {
@@ -1400,22 +1527,37 @@
                 return;
             }
 
+            const selectedSection = (document.getElementById('rptSection')?.value) || 'ALL';
+
             for (const cls of clsKeys) {
                 const schedDisplay = (DB.schedules && DB.schedules[cls]) ? DB.schedules[cls].display : '';
+                const allUsers = await DB.getAll();
+                const students = Object.values(clsMap[cls]);
+
+                // Pre-fetch section for each student and filter
+                const filteredStudents = [];
+                for (const s of students) {
+                    const studentUser = allUsers.find(u => u.uid === s.id);
+                    const sData = studentUser ? await DB.getStudentData(studentUser.id) : null;
+                    const section = sData?.section || '—';
+                    if (selectedSection !== 'ALL' && section !== selectedSection) continue;
+                    filteredStudents.push({ ...s, section });
+                }
+
+                if (!filteredStudents.length) continue;
+
                 tbody.innerHTML += `<tr style="background:rgba(99,102,241,.12)">
                     <td colspan="7" style="font-weight:700;color:var(--brand);padding:6px 10px;font-size:13px">
                         ${CLASS_NAMES[cls] || cls} &bull; <span style="font-weight:400;font-size:11px;opacity:.8">${schedDisplay}</span>
                     </td></tr>`;
-                const students = Object.values(clsMap[cls]);
-                for (const s of students) {
-                    const studentUser = (await DB.getAll()).find(u => u.uid === s.id);
-                    const sData = studentUser ? await DB.getStudentData(studentUser.id) : null;
+
+                for (const s of filteredStudents) {
                     const total = s.present + s.absent + s.late + s.excused || 1;
                     const rate = Math.round(((s.present + s.late) / total) * 100);
                     tbody.innerHTML += `<tr>
                         <td>${s.name}</td>
                         <td>${s.id}</td>
-                        <td><span class="sub-text">${sData ? sData.section || '—' : '—'}</span></td>
+                        <td><span class="sub-text">${s.section}</span></td>
                         <td><span style="font-size:11px;opacity:.7">${CLASS_NAMES[cls] || cls}</span></td>
                         <td><span class="chip green">${s.present}</span></td>
                         <td><span class="chip red">${s.absent}</span></td>
@@ -1460,22 +1602,29 @@
             const clsKeys = CLASS_ORDER.filter(c => (selectedCls === 'ALL' || c === selectedCls) && clsMap[c]);
             if (!clsKeys.length) { showToast('No data to export.'); return; }
 
+            const selectedSection = (document.getElementById('rptSection')?.value) || 'ALL';
+            const allUsers = await DB.getAll();
+
             const q = v => `"${String(v).replace(/"/g, '""')}"`;
             const lines = [
                 q('AttendEase - Attendance Report'),
                 q('Period: ' + fromDate + ' to ' + toDate + '  |  Generated: ' + new Date().toLocaleDateString()),
                 '',
-                ['Subject', 'Student Name', 'Student ID', 'Present', 'Absent', 'Late', 'Excused', 'Attendance Rate'].map(q).join(','),
+                ['Subject', 'Student Name', 'Student ID', 'Section', 'Present', 'Absent', 'Late', 'Excused', 'Attendance Rate'].map(q).join(','),
             ];
 
-            clsKeys.forEach(cls => {
-                Object.values(clsMap[cls]).forEach(s => {
+            for (const cls of clsKeys) {
+                for (const s of Object.values(clsMap[cls])) {
+                    const studentUser = allUsers.find(u => u.uid === s.id);
+                    const sData = studentUser ? await DB.getStudentData(studentUser.id) : null;
+                    const section = sData?.section || '—';
+                    if (selectedSection !== 'ALL' && section !== selectedSection) continue;
                     const total = s.present + s.absent + s.late + s.excused || 1;
                     const rate = Math.round(((s.present + s.late) / total) * 100);
-                    lines.push([CLASS_NAMES[cls] || cls, s.name, s.id, s.present, s.absent, s.late, s.excused, rate + '%'].map(q).join(','));
-                });
+                    lines.push([CLASS_NAMES[cls] || cls, s.name, s.id, section, s.present, s.absent, s.late, s.excused, rate + '%'].map(q).join(','));
+                }
                 lines.push('');
-            });
+            }
 
             const csv = lines.join('\n');
             const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
@@ -2381,6 +2530,69 @@
                 //  Fallback poll every 2s for same-origin cross-tab and local file:// edge cases
                 setInterval(() => { syncExcusesFromDB(); }, 2000);
 
+                // Polling for Excuse Letter Notifications via Supabase
+                setInterval(pollExcuseNotifications, 5000);
+                
+                async function pollExcuseNotifications() {
+                    const lastPollKey = `last_excuse_poll_teacher_${session.id}`;
+                    const lastPoll = localStorage.getItem(lastPollKey);
+                    
+                    // Also check localStorage notifications pushed by the student (same device)
+                    const notifKey = `attendease_notifs_teacher_${session.id}`;
+                    try {
+                        const pending = JSON.parse(localStorage.getItem(notifKey) || '[]');
+                        const unshown = pending.filter(n => !n.shownToTeacher);
+                        if (unshown.length > 0) {
+                            unshown.forEach(n => {
+                                n.shownToTeacher = true;
+                                pushNotification({ icon: n.icon || '📨', title: n.title, body: n.body, time: n.time });
+                            });
+                            localStorage.setItem(notifKey, JSON.stringify(pending));
+                            showToast(`${unshown.length} new excuse letter(s) received!`);
+                            if (document.getElementById('page-excuses')?.classList.contains('active')) loadExcuseLetters();
+                        }
+                    } catch(e) {}
+
+                    try {
+                        let query = window.supabase
+                            .from('attendease_sessions')
+                            .select('student_uid, student_name, class_code, session_date, excuse_submitted_at, excuse_status')
+                            .eq('teacher_id', session.id)
+                            .not('excuse_url', 'is', null)
+                            .order('excuse_submitted_at', { ascending: false })
+                            .limit(10);
+                            
+                        if (lastPoll) {
+                            query = query.gt('excuse_submitted_at', lastPoll);
+                        }
+
+                        const { data, error } = await query;
+                        if (error) throw error;
+                        
+                        if (data && data.length > 0) {
+                            const latest = data[0].excuse_submitted_at;
+                            localStorage.setItem(lastPollKey, latest);
+
+                            if (lastPoll) {
+                                data.forEach(row => {
+                                    pushNotification({
+                                        icon: '📨',
+                                        title: `Excuse letter from ${row.student_name || row.student_uid}`,
+                                        body: `Class ${row.class_code} - ${row.session_date}`,
+                                        time: new Date(row.excuse_submitted_at).toISOString(),
+                                    });
+                                });
+                                showToast(`${data.length} new excuse letter(s) received!`);
+                                if (document.getElementById('page-excuses')?.classList.contains('active')) loadExcuseLetters();
+                            }
+                        } else if (!lastPoll) {
+                            localStorage.setItem(lastPollKey, new Date().toISOString());
+                        }
+                    } catch (err) {
+                        console.warn('Failed to poll excuse letters:', err.message);
+                    }
+                }
+
                 /* ----------------------------------------------------------------------------------------------------------------------------
                    NOTIFICATIONS
                 ---------------------------------------------------------------------------------------------------------------------------- */
@@ -2694,5 +2906,17 @@
 
         setInterval(pollAttendanceFromServer, 3000);
     </script>
+
+    <!-- Toast notification (required by showToast()) -->
+    <div id="toast" style="
+        position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);
+        background:rgba(30,30,46,0.97);color:#fff;padding:10px 22px;
+        border-radius:999px;font-size:13px;font-weight:600;
+        box-shadow:0 4px 24px rgba(0,0,0,0.35);opacity:0;
+        transition:opacity 0.25s,transform 0.25s;pointer-events:none;
+        z-index:99999;white-space:nowrap;
+    "></div>
+    <style>#toast.show{opacity:1!important;transform:translateX(-50%) translateY(0)!important;}</style>
+
 </body>
 </html>

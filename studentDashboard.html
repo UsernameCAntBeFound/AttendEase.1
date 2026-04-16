@@ -163,53 +163,9 @@
 
         </section>
 
-        <section class="page" id="page-news">
-
-            <div class="section-header">
-                <h2 class="section-title"><span class="material-symbols-outlined"
-                        style="font-size:18px;vertical-align:middle;margin-right:4px;">news</span> News & Announcements
-                </h2>
-                <p class="section-sub">Stay updated with your class announcements</p>
-            </div>
-
-            <!-- Category toggle: News vs My Excuses -->
-            <div class="news-category-toggle">
-                <button class="news-cat-btn active" id="catAnnouncements" onclick="setNewsCategory('announcements')">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path
-                            d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
-                        <path d="M18 14h-8" />
-                        <path d="M15 18h-5" />
-                        <path d="M10 6h8v4h-8V6Z" />
-                    </svg>
-                    Announcements
-                </button>
-                <button class="news-cat-btn" id="catExcuses" onclick="setNewsCategory('excuses')">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2.5">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                        <line x1="16" y1="13" x2="8" y2="13" />
-                        <line x1="16" y1="17" x2="8" y2="17" />
-                    </svg>
-                    My Excuse Letters
-                </button>
-            </div>
-
-            <!-- ANNOUNCEMENTS VIEW -->
-            <div id="studentAnnouncementsSection">
-                <!-- Class filter pills -->
-                <div class="news-filter-pills" id="newsFilterPills"></div>
-                <!-- Announcement feed -->
-                <div class="student-news-feed" id="studentNewsFeed"></div>
-            </div>
-
-            <!-- MY EXCUSES VIEW -->
-            <div id="studentExcusesSection" style="display:none;">
-                <!-- Excuse letters feed: view-only, no submission here -->
-                <div id="myExcusesFeed"></div>
-            </div>
-
+        <section class="page" id="page-news" style="display:none!important">
+            <div id="studentAnnouncementsSection"></div>
+            <div id="studentExcusesSection" style="display:none;"><div id="myExcusesFeed"></div></div>
         </section>
 
         <section class="page" id="page-profile">
@@ -404,9 +360,14 @@
                 <div class="std-excuse-meta" id="stdExcuseMeta"></div>
             </div>
 
-            <div class="std-upload-zone" id="stdUploadZone" onclick="triggerStdExcuseFile()">
+            <!-- Remarks field -->
+            <textarea id="stdExcuseRemarks" placeholder="Briefly explain your absence (optional)..."
+                style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--glass);color:var(--text);font-size:13px;font-family:inherit;resize:none;height:72px;margin-bottom:12px;outline:none;"
+            ></textarea>
+
+            <div class="std-upload-zone" id="stdUploadZone" onclick="if(event.target.id !== 'stdExcuseFile') triggerStdExcuseFile()">
                 <input type="file" id="stdExcuseFile" accept="image/*,.pdf,.docx" hidden
-                    onchange="handleStdExcuseFile(event)">
+                    onchange="handleStdExcuseFile(event)" onclick="event.stopPropagation()">
                 <div id="stdUploadPrompt">
                     <div class="std-upload-icon">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -483,17 +444,6 @@
             </svg>
             <span>Scan</span>
         </button>
-        <button class="nav-btn" id="nav-news" onclick="navigate('news')">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path
-                    d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
-                <path d="M18 14h-8" />
-                <path d="M15 18h-5" />
-                <path d="M10 6h8v4h-8V6Z" />
-            </svg>
-            <span>News</span>
-        </button>
         <button class="nav-btn" id="nav-profile" onclick="navigate('profile')">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -515,6 +465,18 @@
         let newsFilterClass = null;  // null = show all
         let newsCategory = 'announcements';
         let newsExcuseFileData = null;
+
+        // Event delegation for excuse buttons
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-excuse-code]');
+            if (!btn) return;
+            console.log('[DEBUG] Excuse button clicked!', btn.dataset);
+            const code = btn.getAttribute('data-excuse-code');
+            const date = btn.getAttribute('data-excuse-date');
+            const name = btn.getAttribute('data-excuse-name');
+            console.log('[DEBUG] Calling openStdExcuseModal', code, date, name);
+            openStdExcuseModal(code, date, name);
+        });
 
         async function toggleSidebar() {
             if (window.innerWidth > 900) {
@@ -589,11 +551,7 @@
             document.getElementById('profileId').textContent = session.uid || '';
             document.getElementById('profileEmail').textContent = session.email || '';
             document.getElementById('profileSection').textContent = extraData.section || '';
-
-            const att = extraData.attendance || { present: 0, absent: 0, late: 0 };
-            document.getElementById('attPresent').textContent = att.present;
-            document.getElementById('attAbsent').textContent = att.absent;
-            document.getElementById('attLate').textContent = att.late;
+            // Attendance counts are loaded by refreshAttendanceSummary() from Supabase
 
             loadGuardianLink(extraData);
 
@@ -676,7 +634,7 @@
             try {
                 const { data, error } = await window.supabase
                     .from('attendease_sessions')
-                    .select('class_code, session_date, status, excuse_content')
+                    .select('class_code, session_date, status, excuse_url, excuse_status')
                     .eq('student_uid', session.uid);
                 if (!error && data) studentSessions = data;
             } catch (e) { console.warn('loadAllClasses sessions fetch failed', e); }
@@ -696,7 +654,7 @@
                         if (!dk) return;
                         const existing = dateMap[dk];
                         if (!existing || (priority[r.status] || 0) > (priority[existing.status] || 0)) {
-                            dateMap[dk] = { status: r.status, excuse_content: r.excuse_content };
+                            dateMap[dk] = { status: r.status, excuse_url: r.excuse_url, excuse_status: r.excuse_status };
                         }
                     });
 
@@ -705,14 +663,12 @@
                     if (rec.status === 'present') present++;
                     else if (rec.status === 'absent') {
                         absent++;
-                        // Show excuse button when absent (even if excused chip not set yet)
-                        absentRecords.push({ date, hasExcuse: !!(rec.excuse_content) });
+                        absentRecords.push({ date, hasExcuse: !!(rec.excuse_url), excuseStatus: rec.excuse_status || null });
                     }
                     else if (rec.status === 'late') late++;
                     else if (rec.status === 'excused') {
                         excused++;
-                        // Also let them view/submit excuse for excused records
-                        absentRecords.push({ date, hasExcuse: !!(dateMap[date] && dateMap[date].excuse_content) });
+                        absentRecords.push({ date, hasExcuse: !!(rec.excuse_url), excuseStatus: rec.excuse_status || null });
                     }
                 });
 
@@ -724,15 +680,28 @@
                 if (absentRecords.length > 0) {
                     absentSection += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">';
                     for (const rec of absentRecords) {
-                        const { date, hasExcuse } = rec;
+                        const { date, hasExcuse, excuseStatus } = rec;
                         const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US',
                             { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+                        // Build the right-side badge/button
+                        let rightSide;
+                        if (hasExcuse) {
+                            const statusMap = {
+                                accepted: { color: '#22c55e', bg: 'rgba(34,197,94,0.12)', icon: '✅', label: 'Accepted' },
+                                rejected: { color: '#ef4444', bg: 'rgba(239,68,68,0.12)', icon: '❌', label: 'Rejected' },
+                                reviewed: { color: '#6366f1', bg: 'rgba(99,102,241,0.12)', icon: '👁', label: 'Reviewed' },
+                                pending:  { color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', icon: '⏳', label: 'Pending' },
+                            };
+                            const s = statusMap[excuseStatus] || statusMap.pending;
+                            rightSide = `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:${s.bg};color:${s.color};border:1px solid ${s.color}44;white-space:nowrap;">${s.icon} ${s.label}</span>`;
+                        } else {
+                            rightSide = `<button class="std-excuse-inline-btn" data-excuse-code="${cls.code}" data-excuse-date="${date}" data-excuse-name="${cls.name}" style="font-size:11px;padding:4px 10px;white-space:nowrap;">📝 Excuse Letter</button>`;
+                        }
+
                         absentSection += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:rgba(255,80,80,0.07);border:1px solid rgba(239,68,68,0.15);border-radius:10px;">
                                 <span style="font-size:12px;color:var(--text-muted);">📅 Absent &nbsp;&middot;&nbsp; ${displayDate}</span>
-                                ${hasExcuse
-                                ? '<span style="font-size:11px;font-weight:700;color:var(--green);white-space:nowrap;">✓ Excuse Submitted</span>'
-                                : `<button class="std-excuse-inline-btn" onclick="openStdExcuseModal('${cls.code}','${date}','${cls.name}')" style="font-size:11px;padding:4px 10px;white-space:nowrap;">📝 Excuse Letter</button>`
-                            }</div>`;
+                                ${rightSide}</div>`;
                     }
                     absentSection += '</div>';
                 }
@@ -773,7 +742,7 @@
             target.classList.add('active');
             navBtn.classList.add('active');
 
-            if (page === 'profile') loadProfile();
+            if (page === 'profile') { loadProfile(); refreshAttendanceSummary(); }
             if (page === 'news') renderStudentNews();
 
             const searchContainer = document.querySelector('.topbar-search');
@@ -958,11 +927,16 @@
         }
 
         async function refreshAttendanceSummary() {
-            const extraData = await DB.getStudentData(session.id);
-            const att = extraData.attendance || { present: 0, absent: 0, late: 0 };
-            document.getElementById('attPresent').textContent = att.present;
-            document.getElementById('attAbsent').textContent = att.absent;
-            document.getElementById('attLate').textContent = att.late;
+            try {
+                const att = await DB.getAttendanceSummary(session.uid);
+                console.log('[AttendEase] Attendance summary for', session.uid, att);
+                const el = id => document.getElementById(id);
+                if (el('attPresent')) el('attPresent').textContent = att.present;
+                if (el('attAbsent')) el('attAbsent').textContent = att.absent;
+                if (el('attLate')) el('attLate').textContent = att.late;
+            } catch(e) {
+                console.error('[AttendEase] refreshAttendanceSummary error:', e.message);
+            }
             loadAllClasses();
         }
 
@@ -1027,14 +1001,39 @@
         function setNewsFilter(code) { newsFilterClass = code; renderStudentNews(); }
         async function signOut() { stopCamera(); await DB.clearSession(); window.location.href = 'index.html'; }
 
+        let stdExcuseClassName = '';
         async function openStdExcuseModal(classCode, date, className) {
-            stdExcuseClassCode = classCode; stdExcuseDate = date;
-            document.getElementById('stdExcuseSubtitle').textContent = `Class: ${className} - ${date}`;
-            const existing = await DB.getStudentExcuse(session.uid, classCode, date);
-            document.getElementById('stdExcuseExisting').hidden = !(existing && existing.dataUrl);
-            document.getElementById('stdUploadZone').hidden = !!(existing && existing.dataUrl);
-            document.getElementById('stdExcuseSubmitBtn').hidden = !!(existing && existing.dataUrl);
-            document.getElementById('stdExcuseModal').hidden = false;
+            console.log('[DEBUG] openStdExcuseModal called', classCode, date, className);
+            try {
+                stdExcuseClassCode = classCode;
+                stdExcuseDate = date;
+                stdExcuseClassName = className || classCode;
+                stdExcuseDataUrl = null;
+                stdExcuseFileName = null;
+
+                document.getElementById('stdExcuseSubtitle').textContent = `Class: ${className} - ${date}`;
+                document.getElementById('stdExcuseRemarks').value = '';
+                document.getElementById('stdUploadPrompt').hidden = false;
+                document.getElementById('stdUploadPreviewWrap').hidden = true;
+                const submitBtn = document.getElementById('stdExcuseSubmitBtn');
+                submitBtn.disabled = true;
+                submitBtn.hidden = false;
+
+                console.log('[DEBUG] Checking existing excuse...');
+                let existing = null;
+                try { existing = await DB.getStudentExcuse(session.uid, classCode, date); } catch(e) { console.warn('[DEBUG] getStudentExcuse error (non-fatal):', e); }
+                console.log('[DEBUG] existing excuse:', existing);
+
+                document.getElementById('stdExcuseExisting').hidden = !(existing && existing.dataUrl);
+                document.getElementById('stdUploadZone').hidden = !!(existing && existing.dataUrl);
+                submitBtn.hidden = !!(existing && existing.dataUrl);
+
+                document.getElementById('stdExcuseModal').hidden = false;
+                console.log('[DEBUG] Modal should now be visible!');
+            } catch(err) {
+                console.error('[DEBUG] openStdExcuseModal FAILED:', err);
+                showToast('Error opening excuse form: ' + err.message);
+            }
         }
 
         function closeStdExcuseModal(e) { if (!e || e.target === document.getElementById('stdExcuseModal')) document.getElementById('stdExcuseModal').hidden = true; }
@@ -1078,30 +1077,21 @@
         }
 
         async function submitStudentExcuseLetter() {
-            if (!stdExcuseDataUrl) return;
-            const result = await DB.submitStudentExcuse(session, stdExcuseClassCode, stdExcuseDate, stdExcuseDataUrl, stdExcuseFileName);
+            if (!stdExcuseDataUrl) { showToast('Please attach a file first.'); return; }
+            const remarks = document.getElementById('stdExcuseRemarks')?.value?.trim() || '';
+            const btn = document.getElementById('stdExcuseSubmitBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
 
-            if (result.success) {
-                const teacher = await DB.getTeacherAccount();
-                if (teacher) {
-                    const key = `attendease_notifs_teacher_${teacher.id}`;
-                    let list = [];
-                    try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch { }
-                    list.unshift({
-                        icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
-                        title: `Excuse letter from ${session.firstname} ${session.lastname}`,
-                        body: `Class ${stdExcuseClassCode} - ${stdExcuseDate}`,
-                        time: new Date().toISOString(),
-                        id: Date.now() + Math.random(),
-                        read: false
-                    });
-                    if (list.length > 50) list.splice(50);
-                    localStorage.setItem(key, JSON.stringify(list));
-                }
-            }
+            const result = await DB.submitStudentExcuse(
+                session, stdExcuseClassCode, stdExcuseDate,
+                stdExcuseDataUrl, stdExcuseFileName,
+                stdExcuseClassName, remarks
+            );
+
+            if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Submit to Teacher'; }
 
             document.getElementById('stdExcuseModal').hidden = true;
-            showToast(result.message);
+            showToast(result.success ? '✅ Excuse letter submitted!' : result.message);
             if (result.success) loadAllClasses();
         }
 
@@ -1125,7 +1115,7 @@
                         .from('attendease_student_scan_logs')
                         .select('*')
                         .eq('student_id', session.id)
-                        .order('created_at', { ascending: false })
+                        .order('id', { ascending: false })
                         .limit(5);
 
                     if (error) throw error;
