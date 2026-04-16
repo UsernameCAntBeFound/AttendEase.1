@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -362,7 +362,7 @@
             <!-- ------ EXCUSES PAGE ------ -->
             <section class="page" id="page-excuses">
                 <div style="padding:8px 0 18px;">
-                    <h2 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">📋 Excuse Letters</h2>
+                    <h2 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¹ Excuse Letters</h2>
                     <p style="font-size:13px;color:var(--text-muted);">Review excuse letters submitted by students</p>
                 </div>
 
@@ -454,16 +454,69 @@
 
             <!-- ------ CLASSES PAGE ------ -->
             <section class="page" id="page-classes">
-                <div class="classes-header">
-                    <h3 class="card-title">Analytics & Subjects</h3>
-                    <button class="btn-primary" onclick="openAddClassModal()">+ Add Subject</button>
+                <!-- Grid view -->
+                <div id="classesViewGrid">
+                    <div class="classes-header">
+                        <h3 class="card-title">Analytics &amp; Subjects</h3>
+                        <button class="btn-primary" onclick="openAddClassModal()">+ Add Subject</button>
+                    </div>
+                    <div class="classes-grid" id="classesGrid"></div>
                 </div>
-                <div class="classes-grid" id="classesGrid"></div>
+                <!-- Detail view -->
+                <div id="classDetailView" style="display:none;flex-direction:column;gap:16px;">
+                    <button class="btn-ghost" onclick="closeClassDetail()" style="display:inline-flex;align-items:center;gap:6px;align-self:flex-start;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Back to Subjects
+                    </button>
+                    <div class="card" style="padding:20px 24px;">
+                        <div id="detailHeader"></div>
+                        <div id="detailStats" style="margin-top:16px;"></div>
+                        <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <label style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Filter by Section</label>
+                            <select id="detailSectionFilter" onchange="filterDetailTable()" style="font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);"></select>
+                        </div>
+                        <div id="detailStudentTable" style="margin-top:16px;overflow-x:auto;"></div>
+                    </div>
+                </div>
             </section>
+
+            <!-- ADD / EDIT CLASS MODAL -->
+            <div class="modal-overlay" id="classModal" hidden onclick="closeClassModal(event)">
+                <div class="modal-box" onclick="event.stopPropagation()" style="max-width:680px;width:95%;max-height:90vh;overflow-y:auto;">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="classModalTitle">Add New Subject</h3>
+                        <button class="modal-close" onclick="closeClassModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:16px;padding:20px 24px;">
+                        <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px;">
+                            <div><label class="form-label">Subject Code *</label><input type="text" id="classCode" placeholder="e.g. ENG-101" style="text-transform:uppercase;width:100%;padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:rgba(107,107,91,0.04);font-size:13.5px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box;"></div>
+                            <div><label class="form-label">Subject Name *</label><input type="text" id="className" placeholder="e.g. English 101" style="width:100%;padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:rgba(107,107,91,0.04);font-size:13.5px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box;"></div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <div><label class="form-label">Start Time</label><input type="time" id="classStartTime" style="width:100%;padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:rgba(107,107,91,0.04);font-size:13.5px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box;"></div>
+                            <div><label class="form-label">End Time</label><input type="time" id="classEndTime" style="width:100%;padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:rgba(107,107,91,0.04);font-size:13.5px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box;"></div>
+                        </div>
+                        <div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
+                                <label class="form-label" style="margin:0;">Enroll Students</label>
+                                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                                    <select id="sectionFilter" onchange="filterStudentPicker()" style="font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);"></select>
+                                    <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="selectAllVisible()">Select All</button>
+                                    <button class="btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="deselectAll()">Clear</button>
+                                    <span id="selectedCount" style="font-size:12px;color:var(--text-muted);font-weight:600;">0 selected</span>
+                                </div>
+                            </div>
+                            <div id="studentPickerList" style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;padding:8px;"></div>
+                        </div>
+                        <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--border-subtle);">
+                            <button class="btn-ghost" onclick="closeClassModal()">Cancel</button>
+                            <button class="btn-primary" onclick="saveClass()" id="saveClassBtn">Save Subject</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </main>
     </div>
-
     <script>
         const session = DB.requireAuth(['teacher']);
         if (!session) throw new Error('Not authenticated');
@@ -487,6 +540,8 @@
         let selectedNewsClass = null;
         let newsAttachments = [];
         let teacherNewsCategory = 'announcements';
+        let editingClassCode = null;
+        let _detailStudentRows = []; // for section filter in detail view
 
         window.addEventListener('DOMContentLoaded', async () => {
             await window.initCloudDb();
@@ -527,7 +582,7 @@
                 navigate(lastPage);
             }
 
-            // Expose for cloud-sync.js — called when cloud pull detects changes
+            // Expose for cloud-sync.js ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â called when cloud pull detects changes
             window.renderDashboard = () => {
                 loadAttendanceSession(true); // forceRender=true bypasses hash check
             };
@@ -595,7 +650,7 @@
             const sel = document.getElementById('excuseFilterClass');
             if (sel) {
                 sel.innerHTML = '<option value="">All Classes</option>' +
-                    classes.map(c => `<option value="${c.code}">${c.code} — ${c.name}</option>`).join('');
+                    classes.map(c => `<option value="${c.code}">${c.code} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ${c.name}</option>`).join('');
             }
             
             const selSec = document.getElementById('excuseFilterSection');
@@ -665,7 +720,7 @@
 
                 if (!data || !data.length) {
                     feed.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
-                        <div style="font-size:48px;margin-bottom:12px;">📭</div>
+                        <div style="font-size:48px;margin-bottom:12px;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­</div>
                         <p style="font-size:14px;font-weight:600;">No excuse letters yet</p>
                         <p style="font-size:12px;">Letters submitted by students will appear here</p>
                     </div>`;
@@ -676,7 +731,7 @@
                 data.forEach(row => {
                     const submittedAt = row.excuse_submitted_at
                         ? new Date(row.excuse_submitted_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                        : '—';
+                        : 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â';
                     const status = row.excuse_status || 'pending';
                     const statusColors = { pending: '#f97316', reviewed: '#6366f1', accepted: '#22c55e', rejected: '#ef4444' };
                     const statusColor = statusColors[status] || '#6b7280';
@@ -693,9 +748,9 @@
                             <div>
                                 <div style="font-size:14px;font-weight:700;color:var(--text);">${row.student_name || row.student_uid}</div>
                                 <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
-                                    📚&nbsp;${row.class_code}${sec}
-                                    &nbsp;&middot;&nbsp; 📅&nbsp;${row.session_date}
-                                    &nbsp;&middot;&nbsp; 🕐&nbsp;${submittedAt}
+                                    ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡&nbsp;${row.class_code}${sec}
+                                    &nbsp;&middot;&nbsp; ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦&nbsp;${row.session_date}
+                                    &nbsp;&middot;&nbsp; ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â&nbsp;${submittedAt}
                                 </div>
                             </div>
                             <span style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:${statusColor}22;color:${statusColor};border:1px solid ${statusColor}44;">${status.toUpperCase()}</span>
@@ -704,13 +759,13 @@
                         ${isImage
                             ? `<img src="${row.excuse_url}" alt="Excuse Letter" style="max-width:100%;max-height:320px;border-radius:12px;object-fit:contain;border:1px solid var(--border);cursor:pointer;" onclick="window.open(this.src,'_blank')">`
                             : row.excuse_url
-                                ? `<button onclick="viewExcuseFile('${encodedKey}')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:10px;font-size:12px;font-weight:600;color:var(--brand);cursor:pointer;border:none;">📄 ${row.excuse_file_name || 'View File'}</button>`
+                                ? `<button onclick="viewExcuseFile('${encodedKey}')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:10px;font-size:12px;font-weight:600;color:var(--brand);cursor:pointer;border:none;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ ${row.excuse_file_name || 'View File'}</button>`
                                 : '<span style="font-size:12px;color:var(--text-muted);">No file attached</span>'
                         }
                         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-                            <button onclick="updateExcuseStatus('${encodedKey}','accepted')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(34,197,94,0.3);background:rgba(34,197,94,0.08);color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;">✓ Accept</button>
-                            <button onclick="updateExcuseStatus('${encodedKey}','rejected')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#dc2626;font-size:12px;font-weight:600;cursor:pointer;">✗ Reject</button>
-                            <button onclick="updateExcuseStatus('${encodedKey}','reviewed')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.08);color:var(--brand);font-size:12px;font-weight:600;cursor:pointer;">👁 Mark Reviewed</button>
+                            <button onclick="updateExcuseStatus('${encodedKey}','accepted')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(34,197,94,0.3);background:rgba(34,197,94,0.08);color:#16a34a;font-size:12px;font-weight:600;cursor:pointer;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ Accept</button>
+                            <button onclick="updateExcuseStatus('${encodedKey}','rejected')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#dc2626;font-size:12px;font-weight:600;cursor:pointer;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Reject</button>
+                            <button onclick="updateExcuseStatus('${encodedKey}','reviewed')" style="flex:1;min-width:80px;padding:7px;border-radius:10px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.08);color:var(--brand);font-size:12px;font-weight:600;cursor:pointer;">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¹Ã…â€œÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Mark Reviewed</button>
                         </div>
                     `;
                     feed.appendChild(card);
@@ -739,7 +794,7 @@
         async function updateExcuseStatus(encodedKey, status) {
             try {
                 const row = window._excuseRows && window._excuseRows[encodedKey];
-                if (!row) { showToast('❌ Cannot find excuse record.'); return; }
+                if (!row) { showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Cannot find excuse record.'); return; }
                 const { error } = await window.supabase
                     .from('attendease_sessions')
                     .update({ excuse_status: status })
@@ -747,11 +802,11 @@
                     .eq('session_date', row.session_date)
                     .eq('student_uid', row.student_uid);
                 if (error) throw error;
-                showToast(`✅ Excuse letter marked as ${status}.`);
+                showToast(`ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ Excuse letter marked as ${status}.`);
                 loadExcuseLetters();
             } catch (err) {
                 console.error('updateExcuseStatus error:', err);
-                showToast('❌ Failed to update status: ' + err.message);
+                showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Failed to update status: ' + err.message);
             }
         }
 
@@ -883,7 +938,7 @@
             <td class="row-num">${i + 1}</td>
             <td class="student-name" style="text-align:left;">${picHtml}${s.name}</td>
             <td class="student-id">${s.studentId}</td>
-            <td><span class="sub-text">${extraData ? extraData.section || '—' : '—'}</span></td>
+            <td><span class="sub-text">${extraData ? extraData.section || 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â' : 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â'}</span></td>
             <td>${s.timeIn ? `<span class="time-badge in">${s.timeIn}</span>` : '<span class="no-action"></span>'}</td>
             <td>${s.timeOut ? `<span class="time-badge out">${s.timeOut}</span>` : '<span class="no-action"></span>'}</td>
             <td>
@@ -909,7 +964,7 @@
                 ${s.excuse
                         ? `<button class="attach-btn has-file" onclick="openExcuseModal(${realIdx})" title="View submitted excuse letter">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        📄 View
+                        ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ View
                     </button>`
                         : `<span class="no-action"></span>`}
             </td>
@@ -1041,18 +1096,18 @@
             }
         }
 
-        /* Mark all Pending → Absent */
+        /* Mark all Pending ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ Absent */
         function markPendingAbsent() {
             const pendingStudents = currentSessionStudents.filter(s => s.status === 'pending');
             if (!pendingStudents.length) {
-                showToast('ℹ️ No pending students to mark.');
+                showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â No pending students to mark.');
                 return;
             }
             pendingStudents.forEach(s => { s.status = 'absent'; });
             saveAttendanceSession();
             renderStudentTable(filterStudentsData());
             updateStats();
-            showToast(`✅ ${pendingStudents.length} pending student(s) marked as Absent.`);
+            showToast(`ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ ${pendingStudents.length} pending student(s) marked as Absent.`);
         }
 
         /*  Clickable status filter chips  */
@@ -1112,7 +1167,7 @@
             currentExcuseIndex = idx;
 
             // Student name
-            document.getElementById('modalStudentName').textContent = '📎 ' + student.name;
+            document.getElementById('modalStudentName').textContent = 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â½ ' + student.name;
 
             // Show image or PDF chip
             const imgWrap = document.getElementById('excuseViewImgWrap');
@@ -1546,7 +1601,7 @@
                 for (const s of students) {
                     const studentUser = allUsers.find(u => u.uid === s.id);
                     const sData = studentUser ? await DB.getStudentData(studentUser.id) : null;
-                    const section = sData?.section || '—';
+                    const section = sData?.section || 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â';
                     if (selectedSection !== 'ALL' && section !== selectedSection) continue;
                     filteredStudents.push({ ...s, section });
                 }
@@ -1624,7 +1679,7 @@
                 for (const s of Object.values(clsMap[cls])) {
                     const studentUser = allUsers.find(u => u.uid === s.id);
                     const sData = studentUser ? await DB.getStudentData(studentUser.id) : null;
-                    const section = sData?.section || '—';
+                    const section = sData?.section || 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â';
                     if (selectedSection !== 'ALL' && section !== selectedSection) continue;
                     const total = s.present + s.absent + s.late + s.excused || 1;
                     const rate = Math.round(((s.present + s.late) / total) * 100);
@@ -1802,7 +1857,7 @@
                 const WEEK_DATES = getLastUniqueDates(clsSessions, 7);
                 const WEEK_LABELS = WEEK_DATES.map(formatShortDateLabel);
                 const dateRangeLabel = WEEK_DATES.length
-                    ? `${formatShortDateLabel(WEEK_DATES[0])}–${formatShortDateLabel(WEEK_DATES[WEEK_DATES.length - 1])}`
+                    ? `${formatShortDateLabel(WEEK_DATES[0])}ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“${formatShortDateLabel(WEEK_DATES[WEEK_DATES.length - 1])}`
                     : '';
 
                 // Rate per day = (present + late) / total records that day
@@ -1812,7 +1867,7 @@
                     const key = `${cls.code}_${date}`;
                     const records = sessionMap[key];
                     if (!records || !records.length) return null;
-                    // Deduplicate by studentId — keep last record if duplicates
+                    // Deduplicate by studentId ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â keep last record if duplicates
                     const byStudent = {};
                     records.forEach(r => { byStudent[r.studentId] = r.status; });
                     const statuses = Object.values(byStudent);
@@ -1922,7 +1977,7 @@
                 </div>
             `;
 
-            // Stats — build from all sessions for this specific class
+            // Stats ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â build from all sessions for this specific class
             const allSessionsDetail = await DB.getAllSessionsReport(session.id);
             const clsSessionsDetail = allSessionsDetail.filter(r => r.class_code === classCode);
 
@@ -1973,35 +2028,24 @@
                 <p style="font-size:12px;opacity:.6;margin-top:8px;padding:0 2px">${uniqueStudents} student${uniqueStudents !== 1 ? 's' : ''} &bull; ${sessionDates.length} session${sessionDates.length !== 1 ? 's' : ''} recorded</p>
             `;
 
-            // Student table — sorted by name
-            const students = Object.values(studentAttMap).sort((a, b) => a.name.localeCompare(b.name));
-            const tableDiv = document.getElementById('detailStudentTable');
-            if (students.length === 0) {
-                tableDiv.innerHTML = '<p style="padding:24px;text-align:center;opacity:.5">No attendance data for this class yet.</p>';
-            } else {
-                let rows = students.map((s, i) => {
-                    const t = s.present + s.absent + s.late + s.excused || 1;
-                    const r = Math.round(((s.present + s.late) / t) * 100);
-                    return `<tr>
-                        <td class="row-num">${i + 1}</td>
-                        <td class="student-name">${s.name}</td>
-                        <td class="student-id">${s.id}</td>
-                        <td><span class="chip green">${s.present}</span></td>
-                        <td><span class="chip red">${s.absent}</span></td>
-                        <td><span class="chip" style="background:rgba(249,115,22,.12);color:#f97316">${s.late}</span></td>
-                        <td><span class="chip yellow">${s.excused}</span></td>
-                        <td><span class="chip ${r >= 80 ? 'green' : r >= 60 ? 'yellow' : 'red'}">${r}%</span></td>
-                    </tr>`;
-                }).join('');
+            // Student table ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â sorted by name
+            // Load section data for each student, cache rows, populate section filter
+            const allUsers = await DB.getAll();
+            const sectionLookup = {};
+            allUsers.forEach(u => { if (u.role === "student") sectionLookup[u.uid] = u.section || "No Section"; });
 
-                tableDiv.innerHTML = `<table class="student-table">
-                    <thead><tr>
-                        <th>#</th><th>Student Name</th><th>ID</th>
-                        <th>Present</th><th>Absent</th><th>Late</th><th>Excused</th><th>Rate</th>
-                    </tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>`;
-            }
+            const students = Object.values(studentAttMap)
+                .map(s => ({ ...s, section: sectionLookup[s.id] || "No Section" }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+
+            _detailStudentRows = students;
+
+            // Populate section filter dropdown
+            const sectionSel = document.getElementById("detailSectionFilter");
+            const sections = ["ALL", ...new Set(students.map(s => s.section))].sort((a,b) => a === "ALL" ? -1 : a.localeCompare(b));
+            sectionSel.innerHTML = sections.map(s => `<option value="${s}">${s === "ALL" ? "All Sections" : s}</option>`).join("");
+
+            renderDetailStudentTable(students);
         }
 
         function closeClassDetail() {
@@ -2129,94 +2173,57 @@
             const name = document.getElementById('className').value.trim();
             const startTime = document.getElementById('classStartTime').value;
             const endTime = document.getElementById('classEndTime').value;
-
-            if (!code || !name) {
-                showToast(' Class code and name are required.');
-                return;
-            }
-
-            // Collect selected students
+            if (!code || !name) { showToast('Class code and name are required.'); return; }
+            const btn = document.getElementById('saveClassBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
             const selectedStudents = [];
-            for (const cb of document.querySelectorAll('.picker-student input:checked')) {
-                selectedStudents.push(cb.value);
-            }
-
-            // Format schedule display
-            let scheduleDisplay = '';
-            if (startTime && endTime) {
-                const fmt = t => {
-                    const [h, m] = t.split(':').map(Number);
-                    const ampm = h >= 12 ? 'PM' : 'AM';
-                    const h12 = h % 12 || 12;
-                    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
-                };
-                scheduleDisplay = `${fmt(startTime)}  ${fmt(endTime)}`;
-            }
-
-            teacherData = await DB.getTeacherData(session.id) || {};
-            if (!teacherData.classes) teacherData.classes = [];
-
-            if (editingClassCode) {
-                // Edit existing
-                const idx = teacherData.classes.findIndex(c => c.code === editingClassCode);
-                if (idx >= 0) {
-                    teacherData.classes[idx].name = name;
-                    teacherData.classes[idx].schedule = scheduleDisplay;
-                    teacherData.classes[idx].scheduleStart = startTime;
-                    teacherData.classes[idx].scheduleEnd = endTime;
-                    teacherData.classes[idx].enrolledStudents = selectedStudents;
-                    teacherData.classes[idx].enrolled = selectedStudents.length;
-                }
-            } else {
-                // Check for duplicate code
-                if (teacherData.classes.some(c => c.code === code)) {
-                    showToast(' A class with this code already exists.');
+            for (const cb of document.querySelectorAll('.picker-student input:checked')) selectedStudents.push(cb.value);
+            const fmt = t => { const [h, m] = t.split(':').map(Number); return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`; };
+            const scheduleDisplay = (startTime && endTime) ? `${fmt(startTime)} - ${fmt(endTime)}` : '';
+            if (!editingClassCode) {
+                teacherData = await DB.getTeacherData(session.id) || {};
+                if ((teacherData.classes||[]).some(c => c.code === code)) {
+                    showToast('A subject with this code already exists.');
+                    if (btn) { btn.disabled = false; btn.textContent = 'Save Subject'; }
                     return;
                 }
-                teacherData.classes.push({
-                    code,
-                    name,
-                    schedule: scheduleDisplay,
-                    scheduleStart: startTime,
-                    scheduleEnd: endTime,
-                    enrolled: selectedStudents.length,
-                    weekly: [0, 0, 0, 0, 0, 0, 0],
-                    enrolledStudents: selectedStudents,
-                });
             }
-
-            await DB.saveTeacherData(session.id, teacherData);
-
-            // Notify newly added students
+            const row = {
+                teacher_id: session.id, code: editingClassCode || code, name,
+                schedule: scheduleDisplay, schedule_start: startTime, schedule_end: endTime,
+                enrolled: selectedStudents.length, enrolled_students: selectedStudents, weekly: [0,0,0,0,0,0,0]
+            };
+            const { error } = await window.supabase.from('attendease_teacher_classes').upsert(row, { onConflict: 'teacher_id,code' });
+            if (error) {
+                console.error('saveClass error:', error);
+                showToast('Error saving: ' + (error.message || JSON.stringify(error)));
+                if (btn) { btn.disabled = false; btn.textContent = 'Save Subject'; }
+                return;
+            }
             const teacherFullName = `${session.firstname} ${session.lastname}`.trim();
-            if (editingClassCode) {
-                // Find students who weren't enrolled before but are now
-                const oldClass = ((await DB.getTeacherData(session.id) || {}).classes || []).find(c => c.code === editingClassCode);
-                const oldEnrolled = new Set((oldClass ? oldClass.enrolledStudents : []) || []);
-                selectedStudents.forEach(studentId => {
-                    if (!oldEnrolled.has(studentId)) {
-                        pushStudentNotification(studentId, {
-                            icon: '',
-                            title: `Added to ${name}`,
-                            body: `${teacherFullName} added you to ${name} (${code})`,
-                        });
-                    }
-                });
-            } else {
-                // New class  notify all selected students
-                selectedStudents.forEach(studentId => {
-                    pushStudentNotification(studentId, {
-                        icon: '',
-                        title: `Added to ${name}`,
-                        body: `${teacherFullName} added you to ${name} (${code})`,
-                    });
-                });
-            }
-
+            selectedStudents.forEach(sid => pushStudentNotification(sid, { icon: '', title: `Enrolled in ${name}`, body: `${teacherFullName} enrolled you in ${name} (${row.code})` }));
+            if (btn) { btn.disabled = false; btn.textContent = 'Save Subject'; }
             document.getElementById('classModal').hidden = true;
-            populateClassDropdowns();
-            renderClasses();
-            showToast(editingClassCode ? 'Subject updated ' : 'Subject added ');
+            await populateClassDropdowns();
+            await renderClasses();
+            showToast(editingClassCode ? 'Subject updated!' : 'Subject added!');
+        }
+
+        function filterDetailTable() {
+            const section = document.getElementById('detailSectionFilter').value;
+            const filtered = section === 'ALL' ? _detailStudentRows : _detailStudentRows.filter(r => (r.section||'No Section') === section);
+            renderDetailStudentTable(filtered);
+        }
+
+        function renderDetailStudentTable(students) {
+            const tableDiv = document.getElementById('detailStudentTable');
+            if (!students.length) { tableDiv.innerHTML = '<p style="padding:24px;text-align:center;opacity:.5">No students in this selection.</p>'; return; }
+            const rows = students.map((s, i) => {
+                const t = (s.present+s.absent+s.late+s.excused)||1;
+                const r = Math.round(((s.present+s.late)/t)*100);
+                return `<tr><td class="row-num">${i+1}</td><td style="font-weight:600">${s.name}</td><td style="font-size:12px;color:var(--text-muted)">${s.id}</td><td style="font-size:12px;color:var(--text-muted)">${s.section||'&mdash;'}</td><td><span class="chip green">${s.present}</span></td><td><span class="chip red">${s.absent}</span></td><td><span class="chip" style="background:rgba(249,115,22,.12);color:#f97316">${s.late}</span></td><td><span class="chip yellow">${s.excused}</span></td><td><span class="chip ${r>=80?'green':r>=60?'yellow':'red'}">${r}%</span></td></tr>`;
+            }).join('');
+            tableDiv.innerHTML = `<table class="student-table"><thead><tr><th>#</th><th>Student Name</th><th>ID</th><th>Section</th><th>Present</th><th>Absent</th><th>Late</th><th>Excused</th><th>Rate</th></tr></thead><tbody>${rows}</tbody></table>`;
         }
 
 
@@ -2326,11 +2333,11 @@
                 if (data.ok) {
                     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Sent';
                     btn.className = 'notify-btn sent';
-                    showToast('✓ Notified! ' + (data.message || ''));
+                    showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ Notified! ' + (data.message || ''));
                 } else {
                     btn.textContent = ' No PSID';
                     btn.className = 'notify-btn failed';
-                    showToast('⚠ ' + (data.message || 'No record found'));
+                    showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  ' + (data.message || 'No record found'));
                     setTimeout(() => { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Notify'; btn.className = 'notify-btn'; }, 4000);
                 }
             } catch (err) {
@@ -2344,7 +2351,7 @@
         async function notifyAllAbsent() {
             const targets = currentSessionStudents.filter(s => s.status === 'absent' || s.status === 'late');
             if (!targets.length) { showToast('No absent or late students to notify.'); return; }
-            showToast('📤 Sending ' + targets.length + ' notification(s)');
+            showToast('ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ Sending ' + targets.length + ' notification(s)');
             for (const s of targets) {
                 const idx = currentSessionStudents.indexOf(s);
                 await notifyGuardian(idx);
@@ -2532,7 +2539,7 @@
                     }
                 }
 
-                //  Real-time cross-tab listener (already registered in DOMContentLoaded — no duplicate needed)
+                //  Real-time cross-tab listener (already registered in DOMContentLoaded ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â no duplicate needed)
 
                 //  Fallback poll every 2s for same-origin cross-tab and local file:// edge cases
                 setInterval(() => { syncExcusesFromDB(); }, 2000);
@@ -2552,7 +2559,7 @@
                         if (unshown.length > 0) {
                             unshown.forEach(n => {
                                 n.shownToTeacher = true;
-                                pushNotification({ icon: n.icon || '📨', title: n.title, body: n.body, time: n.time });
+                                pushNotification({ icon: n.icon || 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨', title: n.title, body: n.body, time: n.time });
                             });
                             localStorage.setItem(notifKey, JSON.stringify(pending));
                             showToast(`${unshown.length} new excuse letter(s) received!`);
@@ -2583,7 +2590,7 @@
                             if (lastPoll) {
                                 data.forEach(row => {
                                     pushNotification({
-                                        icon: '📨',
+                                        icon: 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨',
                                         title: `Excuse letter from ${row.student_name || row.student_uid}`,
                                         body: `Class ${row.class_code} - ${row.session_date}`,
                                         time: new Date(row.excuse_submitted_at).toISOString(),
@@ -2850,7 +2857,7 @@
             style="max-width:90vw;max-height:80vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);cursor:default">
     </div>
 
-    <!-- Attendance polling — pulls directly from Render every 3s for cross-device sync -->
+    <!-- Attendance polling ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â pulls directly from Render every 3s for cross-device sync -->
     <script>
         const RENDER_URL = 'https://attendease-messenger.onrender.com';
 
@@ -2907,7 +2914,7 @@
                     renderStudentTable(filterStudentsData());
                 }
             } catch (err) {
-                // Server may be waking up — silent fail, retry next interval
+                // Server may be waking up ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â silent fail, retry next interval
             }
         }
 

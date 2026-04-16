@@ -198,12 +198,47 @@ window.DB = {
 
     async getTeacherData(userId) {
         return cached('teacher_' + userId, async () => {
-            const { data } = await getSupabaseClient().from('attendease_teacher_classes').select('*').eq('teacher_id', userId);
-            return { classes: data || [], sessions: {}, announcements: [] };
+            const { data, error } = await getSupabaseClient()
+                .from('attendease_teacher_classes')
+                .select('*')
+                .eq('teacher_id', userId);
+            if (error) console.error('getTeacherData error:', error);
+            // Normalize each DB row into the class shape the UI expects
+            const classes = (data || []).map(row => ({
+                code:             row.code || row.class_code || '',
+                name:             row.name || row.class_name || '',
+                schedule:         row.schedule || '',
+                scheduleStart:    row.schedule_start || '',
+                scheduleEnd:      row.schedule_end || '',
+                enrolled:         row.enrolled || 0,
+                enrolledStudents: row.enrolled_students || [],
+                weekly:           row.weekly || [0,0,0,0,0,0,0],
+            }));
+            return { classes, sessions: {}, announcements: [] };
         });
     },
 
-    async saveTeacherData(userId, data) {},
+    async saveTeacherData(userId, data) {
+        const classes = data.classes || [];
+        for (const cls of classes) {
+            const row = {
+                teacher_id:        userId,
+                code:              cls.code,
+                name:              cls.name,
+                schedule:          cls.schedule || '',
+                schedule_start:    cls.scheduleStart || '',
+                schedule_end:      cls.scheduleEnd || '',
+                enrolled:          cls.enrolledStudents ? cls.enrolledStudents.length : (cls.enrolled || 0),
+                enrolled_students: cls.enrolledStudents || [],
+                weekly:            cls.weekly || [0,0,0,0,0,0,0],
+            };
+            const { error } = await getSupabaseClient()
+                .from('attendease_teacher_classes')
+                .upsert(row, { onConflict: 'teacher_id,code' });
+            if (error) console.error('saveTeacherData upsert error:', error, row);
+        }
+        bustCache('teacher_' + userId);
+    },
 
     async getSession_attendance(teacherId, classCode, date) {
         const { data } = await getSupabaseClient().from('attendease_sessions')
