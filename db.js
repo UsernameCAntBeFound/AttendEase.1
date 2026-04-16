@@ -32,6 +32,30 @@ const CLASS_SCHEDULES = {
 };
 const SKEY = 'attendease_session';
 
+/* ─── LEGACY LOCALSTORAGE PURGE ─────────────────────────────────────────────
+   The old system stored attendance, sessions, and user data in localStorage.
+   We now use Supabase exclusively. This runs once per browser tab on load
+   to wipe any ghost data that could pollute the Supabase-based dashboard.
+   sessionStorage (where the auth session lives) is NOT touched.
+────────────────────────────────────────────────────────────────────────────── */
+(function purgeLegacyLocalStorage() {
+    try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('attendease_')) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        if (keysToRemove.length > 0) {
+            console.info(`[AttendEase] Cleared ${keysToRemove.length} legacy localStorage key(s):`, keysToRemove);
+        }
+    } catch (e) {
+        // Silently ignore if localStorage is unavailable (private mode, etc.)
+    }
+})();
+
 window.initCloudDb = async function() {
     // We no longer need to pull state from legacy sync url since we use RDBMS directly!
 };
@@ -46,7 +70,8 @@ window.DB = {
 
     async getAll() {
         return cached('users_all', async () => {
-            const { data } = await supabaseClient.from('attendease_users').select('*').eq('is_archived', false);
+            const { data, error } = await supabaseClient.from('attendease_users').select('*').or('is_archived.eq.false,is_archived.is.null');
+            if (error) console.error('getAllUsers Error:', error);
             return data || [];
         });
     },
@@ -135,11 +160,15 @@ window.DB = {
     },
 
     async getStudentData(userId) {
-        const { data } = await supabaseClient.from('attendease_student_data').select('*').eq('user_id', userId).single();
-        if (data) {
-            data.guardianFbLink = data.guardian_fb_link || '';
-        }
-        return data || { section: '', guardianFbLink: '', attendance: { present: 0, absent: 0, late: 0 }, scanLog: [], excuseLetters: [] };
+        return cached('student_data_' + userId, async () => {
+            try {
+                const { data } = await supabaseClient.from('attendease_student_data').select('*').eq('user_id', userId).single();
+                if (data) data.guardianFbLink = data.guardian_fb_link || '';
+                return data || { section: '', guardianFbLink: '', attendance: { present: 0, absent: 0, late: 0 } };
+            } catch (e) {
+                return { section: '', guardianFbLink: '', attendance: { present: 0, absent: 0, late: 0 } };
+            }
+        });
     },
 
     async saveStudentData(userId, data) {
@@ -148,6 +177,7 @@ window.DB = {
             section: data.section,
             guardian_fb_link: data.guardianFbLink || ''
         });
+        bustCache('student_data_' + userId);
     },
 
     async getTeacherData(userId) {
