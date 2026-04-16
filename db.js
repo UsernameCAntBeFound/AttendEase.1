@@ -3,6 +3,18 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
+/* ── Simple in-memory cache to avoid redundant network calls ── */
+const _cache = {};
+const CACHE_TTL = 3000; // 3 seconds
+function cached(key, fetcher) {
+    const now = Date.now();
+    if (_cache[key] && (now - _cache[key].ts) < CACHE_TTL) return Promise.resolve(_cache[key].val);
+    return fetcher().then(val => { _cache[key] = { val, ts: now }; return val; });
+}
+function bustCache(prefix) {
+    Object.keys(_cache).forEach(k => { if (k.startsWith(prefix)) delete _cache[k]; });
+}
+
 const SIMULATED_TIME = null;
 const LATE_GRACE_MINUTES = 15;
 const CLASS_SCHEDULES = {
@@ -26,8 +38,10 @@ window.DB = {
     },
 
     async getAll() {
-        const { data } = await supabaseClient.from('attendease_users').select('*').eq('is_archived', false);
-        return data || [];
+        return cached('users_all', async () => {
+            const { data } = await supabaseClient.from('attendease_users').select('*').eq('is_archived', false);
+            return data || [];
+        });
     },
 
     async getById(id) {
@@ -72,16 +86,19 @@ window.DB = {
             password_hash: data.password || 'default123', // In real app, call a 'create_user' RPC for hashing.
             created_by: 'Admin'
         }]).select().single();
+        bustCache('users');
         return newUser;
     },
 
     async update(id, changes) {
         const { data } = await supabaseClient.from('attendease_users').update(changes).eq('id', id).select().single();
+        bustCache('users');
         return data;
     },
 
     async delete(id) {
         await supabaseClient.from('attendease_users').delete().eq('id', id);
+        bustCache('users');
     },
 
     async archive(id) {
@@ -112,8 +129,10 @@ window.DB = {
     },
 
     async getTeacherData(userId) {
-        const { data } = await supabaseClient.from('attendease_teacher_classes').select('*').eq('teacher_id', userId);
-        return { classes: data || [], sessions: {}, announcements: [] };
+        return cached('teacher_' + userId, async () => {
+            const { data } = await supabaseClient.from('attendease_teacher_classes').select('*').eq('teacher_id', userId);
+            return { classes: data || [], sessions: {}, announcements: [] };
+        });
     },
 
     async saveTeacherData(userId, data) {},
@@ -127,23 +146,29 @@ window.DB = {
         return data || [];
     },
 
+    async getAllSessionsReport(teacherId) {
+        const { data } = await supabaseClient.from('attendease_sessions')
+            .select('*')
+            .eq('teacher_id', teacherId);
+        return data || [];
+    },
+
     async saveSession_attendance(teacherId, classCode, date, records) {
-        // Upsert all students in this session
-        for(let r of records) {
-            await supabaseClient.from('attendease_sessions').upsert({
-                teacher_id: teacherId,
-                class_code: classCode,
-                session_date: date,
-                student_uid: r.studentId || r.student_uid,
-                student_name: r.name || r.student_name,
-                status: r.status,
-                time_in: r.timeIn || r.time_in,
-                time_out: r.timeOut || r.time_out,
-                remark: r.remark,
-                excuse_url: r.excuse || r.excuse_url,
-                excuse_file_name: r.excuseFileName || r.excuse_file_name
-            });
-        }
+        // Batch upsert all students in one call for performance
+        const rows = records.map(r => ({
+            teacher_id: teacherId,
+            class_code: classCode,
+            session_date: date,
+            student_uid: r.studentId || r.student_uid,
+            student_name: r.name || r.student_name,
+            status: r.status,
+            time_in: r.timeIn || r.time_in,
+            time_out: r.timeOut || r.time_out,
+            remark: r.remark,
+            excuse_url: r.excuse || r.excuse_url,
+            excuse_file_name: r.excuseFileName || r.excuse_file_name
+        }));
+        if (rows.length) await supabaseClient.from('attendease_sessions').upsert(rows);
     },
 
     async getTeacherAccount() {
@@ -300,7 +325,7 @@ window.DB = {
         try { return JSON.parse(sessionStorage.getItem(SKEY) || 'null'); } catch { return null; }
     },
 
-    async requireAuth(allowedRoles) {
+    requireAuth(allowedRoles) {
         const user = this.getSession();
         if (!user || !allowedRoles.includes(user.role)) {
             window.location.replace('index.html');

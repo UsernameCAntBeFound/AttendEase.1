@@ -835,10 +835,9 @@
                     // dashboard reflects it within 3 seconds on ANY device.
                     const teacher = await DB.getTeacherAccount();
                     if (teacher) {
-                        const teacherData = DB.getTeacherData(teacher.id);
-                        const sessionKey  = `${payload.cls}_${payload.date}`;
-                        const records     = (teacherData.sessions && teacherData.sessions[sessionKey]) || [];
-                        const myRecord    = records.find(r => r.studentId === session.uid) || null;
+                        const teacherData = await DB.getTeacherData(teacher.id);
+                        const records = await DB.getSession_attendance(teacher.id, payload.cls, payload.date);
+                        const myRecord = records.find(r => r.studentId === session.uid || r.student_uid === session.uid) || null;
 
                         if (myRecord) {
                             fetch('https://attendease-messenger.onrender.com/api/scan', {

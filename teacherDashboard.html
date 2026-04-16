@@ -822,9 +822,18 @@
             if (badge) badge.innerHTML = sched ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg> Schedule: ${sched.display}` : '';
 
             const key = `${currentClassCode}_${currentDate}`;
-            const savedRecords = teacherData.sessions[key]
-                ? JSON.parse(JSON.stringify(teacherData.sessions[key]))
-                : [];
+            const dbRecords = await DB.getSession_attendance(session.id, currentClassCode, currentDate);
+            const savedRecords = dbRecords.map(r => ({
+                studentId: r.student_uid,
+                name: r.student_name,
+                status: r.status,
+                timeIn: r.time_in,
+                timeOut: r.time_out,
+                remark: r.remark || '',
+                excuse: r.excuse_url || null,
+                excuseFileName: r.excuse_file_name || '',
+                excuseSubmittedAt: r.excuse_submitted_at || '',
+            }));
 
             const recordMap = {};
             savedRecords.forEach(r => { recordMap[r.studentId] = true; });
@@ -833,7 +842,7 @@
                 .filter(u => u.role === 'student')
                 .forEach(student => {
                     if (!recordMap[student.uid]) {
-                        const dbRecord = (teacherData.sessions[key] || []).find(r => r.studentId === student.uid);
+                        const dbRecord = savedRecords.find(r => r.studentId === student.uid);
                         savedRecords.push({
                             studentId: student.uid,
                             name: `${student.firstname}`.trim(),
@@ -1321,7 +1330,7 @@
                     title: `New announcement in ${className}`,
                     body: `${teacherFullName} posted a new announcement`,
                 });
-            });
+            }
 
             // Clear form
             editor.innerHTML = '';
@@ -1417,21 +1426,33 @@
             const toDate = document.getElementById('rptTo').value;
 
             const clsMap = {};
-            Object.entries(teacherData.sessions || {}).forEach(([key, records]) => {
-                const [cls, date] = key.split('_');
+            const allSessions = await DB.getAllSessionsReport(session.id);
+            allSessions.forEach(r => {
+                const cls = r.class_code;
+                const date = r.session_date;
+
                 if (selectedCls !== 'ALL' && cls !== selectedCls) return;
                 if (fromDate && date < fromDate) return;
                 if (toDate && date > toDate) return;
+
                 if (!clsMap[cls]) clsMap[cls] = {};
-                records.forEach(r => {
-                    if (!clsMap[cls][r.studentId])
-                        clsMap[cls][r.studentId] = { name: r.name, id: r.studentId, present: 0, absent: 0, late: 0, excused: 0 };
-                    const st = clsMap[cls][r.studentId];
-                    if (r.status === 'present') st.present++;
-                    else if (r.status === 'absent') st.absent++;
-                    else if (r.status === 'late') st.late++;
-                    else if (r.status === 'excused') st.excused++;
-                });
+                
+                if (!clsMap[cls][r.student_uid]) {
+                    clsMap[cls][r.student_uid] = { 
+                        name: r.student_name, 
+                        id: r.student_uid, 
+                        present: 0, 
+                        absent: 0, 
+                        late: 0, 
+                        excused: 0 
+                    };
+                }
+                
+                const st = clsMap[cls][r.student_uid];
+                if (r.status === 'present') st.present++;
+                else if (r.status === 'absent') st.absent++;
+                else if (r.status === 'late') st.late++;
+                else if (r.status === 'excused') st.excused++;
             });
 
             const clsKeys = CLASS_ORDER.filter(c => (selectedCls === 'ALL' || c === selectedCls) && clsMap[c]);
@@ -1473,8 +1494,11 @@
             const toDate = document.getElementById('rptTo').value;
 
             const clsMap = {};
-            Object.entries(teacherData.sessions || {}).forEach(([key, records]) => {
-                const [cls, date] = key.split('_');
+            const allSessions = await DB.getAllSessionsReport(session.id);
+            allSessions.forEach(r => {
+                const cls = r.class_code;
+                const date = r.session_date;
+                const records = [ { studentId: r.student_uid, name: r.student_name, status: r.status } ];
                 if (selectedCls !== 'ALL' && cls !== selectedCls) return;
                 if (fromDate && date < fromDate) return;
                 if (toDate && date > toDate) return;
@@ -1545,9 +1569,11 @@
             doc.text('Period: ' + fromDate + ' to ' + toDate + '   |   Generated: ' + new Date().toLocaleDateString(), 14, 26);
 
             var clsMap = {};
-            Object.entries(teacherData.sessions || {}).forEach(function ([key, records]) {
-                var parts = key.split('_');
-                var cls = parts[0]; var date = parts[1];
+            const allSessions = await DB.getAllSessionsReport(session.id);
+            allSessions.forEach(function(r) {
+                var cls = r.class_code;
+                var date = r.session_date;
+                var records = [ { studentId: r.student_uid, name: r.student_name, status: r.status } ];
                 if (selectedCls !== 'ALL' && cls !== selectedCls) return;
                 if (date < fromDate || date > toDate) return;
                 if (!clsMap[cls]) clsMap[cls] = {};
@@ -1634,10 +1660,18 @@
             const WEEK_DATES = ['2026-04-12', '2026-04-13', '2026-04-14', '2026-04-15', '2026-04-16', '2026-04-17', '2026-04-18'];
             const WEEK_LABELS = ['Apr 12', 'Apr 13', 'Apr 14', 'Apr 15', 'Apr 16', 'Apr 17', 'Apr 18'];
 
+            const allSessions = await DB.getAllSessionsReport(session.id);
+            const sessionMap = {};
+            allSessions.forEach(r => {
+                const k = r.class_code + '_' + r.session_date;
+                if (!sessionMap[k]) sessionMap[k] = [];
+                sessionMap[k].push({ status: r.status });
+            });
+
             for (const cls of classes) {
                 const dailyRates = WEEK_DATES.map(date => {
                     const key = `${cls.code}_${date}`;
-                    const records = (teacherData.sessions || {})[key];
+                    const records = sessionMap[key];
                     if (!records || !records.length) return null;
                     const present = records.filter(r => r.status === 'present' || r.status === 'late').length;
                     return Math.round((present / records.length) * 100);
@@ -1713,7 +1747,7 @@
                         }
                     });
                 }, 50);
-            });
+            }
         }
 
         /*  Class Detail View  */
@@ -1747,10 +1781,18 @@
             const WEEK_DATES = ['2026-04-12', '2026-04-13', '2026-04-14', '2026-04-15', '2026-04-16', '2026-04-17', '2026-04-18'];
             let totalPresent = 0, totalAbsent = 0, totalLate = 0, totalExcused = 0;
             const studentAttMap = {}; // studentId  { name, present, absent, late, excused }
+            
+            const allSessionsDetail = await DB.getAllSessionsReport(session.id);
+            const sessionMapDetail = {};
+            allSessionsDetail.forEach(r => {
+                const k = r.class_code + '_' + r.session_date;
+                if (!sessionMapDetail[k]) sessionMapDetail[k] = [];
+                sessionMapDetail[k].push({ studentId: r.student_uid, name: r.student_name, status: r.status });
+            });
 
             WEEK_DATES.forEach(date => {
                 const key = `${classCode}_${date}`;
-                const records = (teacherData.sessions || {})[key] || [];
+                const records = sessionMapDetail[key] || [];
                 records.forEach(r => {
                     if (!studentAttMap[r.studentId]) {
                         studentAttMap[r.studentId] = { name: r.name, id: r.studentId, present: 0, absent: 0, late: 0, excused: 0 };
@@ -1994,7 +2036,7 @@
             const teacherFullName = `${session.firstname} ${session.lastname}`.trim();
             if (editingClassCode) {
                 // Find students who weren't enrolled before but are now
-                const oldClass = (DB.getTeacherData(session.id).classes || []).find(c => c.code === editingClassCode);
+                const oldClass = ((await DB.getTeacherData(session.id)).classes || []).find(c => c.code === editingClassCode);
                 const oldEnrolled = new Set((oldClass ? oldClass.enrolledStudents : []) || []);
                 selectedStudents.forEach(studentId => {
                     if (!oldEnrolled.has(studentId)) {
