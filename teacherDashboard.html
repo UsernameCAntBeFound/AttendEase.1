@@ -181,6 +181,19 @@
                         <label>Date</label>
                         <input type="date" id="sessionDate" min="2026-04-12" max="2026-04-18" onchange="loadClass()">
                     </div>
+                    <!-- Section filter -->
+                    <div class="class-selector">
+                        <label>Section</label>
+                        <select id="sectionFilterSelect" onchange="setSectionFilter(this.value)">
+                            <option value="">All Sections</option>
+                            <option value="ABM-1">ABM-1</option>
+                            <option value="ABM-2">ABM-2</option>
+                            <option value="STEM-1">STEM-1</option>
+                            <option value="STEM-2">STEM-2</option>
+                            <option value="ICT-1">ICT-1</option>
+                            <option value="ICT-2">ICT-2</option>
+                        </select>
+                    </div>
                     <!-- Class schedule badge moved next to date -->
                     <div id="schedBadge"
                         style="font-size:13px;color:var(--text-muted);font-weight:600;display:flex;align-items:center;height:38px;padding:0 8px;opacity:.85;">
@@ -485,6 +498,8 @@
         let currentDate = null;
         let currentSessionStudents = [];
         let currentStatusFilter = null;
+        let currentSectionFilter = null;   // NEW: section filter
+        let sectionMap = {};               // NEW: studentId -> section (built on load)
         // Chart.js instances keyed by class code so we can destroy/recreate charts safely.
         const chartInstances = {};
         // Leaflet map objects (some map code paths exist in this file; declaring prevents ReferenceError).
@@ -644,7 +659,13 @@
             const students = allUsers.filter(u => u.role === 'student');
             
             // Pre-fetch all student metadata into cache for faster rendering
-            await Promise.all(students.map(s => DB.getStudentData(s.id)));
+            const allStudentData = await Promise.all(students.map(s => DB.getStudentData(s.id)));
+
+            // Build sectionMap: student UID -> section (used by section filter)
+            sectionMap = {};
+            students.forEach((s, i) => {
+                sectionMap[s.uid] = (allStudentData[i] && allStudentData[i].section) || '';
+            });
 
             students.forEach(student => {
                 const sId = student.uid;
@@ -902,6 +923,10 @@
             if (currentStatusFilter) {
                 list = list.filter(s => s.status === currentStatusFilter);
             }
+            // Section filter
+            if (currentSectionFilter) {
+                list = list.filter(s => (sectionMap[s.studentId] || '') === currentSectionFilter);
+            }
             // Search filter
             const searchEl = document.getElementById('searchInput');
             const q = (searchEl && typeof searchEl.value === 'string') ? searchEl.value.toLowerCase() : '';
@@ -909,6 +934,11 @@
                 list = list.filter(s => s.name.toLowerCase().includes(q) || s.studentId.includes(q));
             }
             return list;
+        }
+
+        function setSectionFilter(val) {
+            currentSectionFilter = val || null;
+            renderStudentTable(filterStudentsData());
         }
 
         /* ----------------------------------------------------------------------------------------------------------------------------
