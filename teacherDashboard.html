@@ -754,7 +754,7 @@
         });
 
         /** Populate all class dropdowns from teacher data */
-        function populateClassDropdowns() {
+        async function populateClassDropdowns() {
             teacherData = await DB.getTeacherData(session.id);
             const classes = teacherData.classes || [];
 
@@ -777,7 +777,7 @@
         ---------------------------------------------------------------------------------------------------------------------------- */
         const PAGE_TITLES = { attendance: 'Attendance', qrcode: 'QR Code', news: 'News', reports: 'Reports', classes: 'Classes' };
 
-        function navigate(page) {
+        async function navigate(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             document.getElementById('page-' + page).classList.add('active');
@@ -809,7 +809,7 @@
            ATTENDANCE  load / save session
         ---------------------------------------------------------------------------------------------------------------------------- */
         let _lastSessionHash = '';
-        function loadAttendanceSession(forceRender = false) {
+        async function loadAttendanceSession(forceRender = false) {
             currentClassCode = document.getElementById('classSelect').value;
             currentDate = document.getElementById('sessionDate').value;
             teacherData = await DB.getTeacherData(session.id);
@@ -857,7 +857,7 @@
         }
         }
 
-        function saveAttendanceSession() {
+        async function saveAttendanceSession() {
             await DB.saveSession_attendance(session.id, currentClassCode, currentDate, currentSessionStudents);
             teacherData = await DB.getTeacherData(session.id);
         }
@@ -878,7 +878,7 @@
             }
         }
 
-        function renderStudentTable(list) {
+        async function renderStudentTable(list) {
             const tbody = document.getElementById('studentBody');
             tbody.innerHTML = '';
             if (!list.length) {
@@ -1163,7 +1163,7 @@
         /* ----------------------------------------------------------------------------------------------------------------------------
            QR CODE
         ---------------------------------------------------------------------------------------------------------------------------- */
-        function generateQR() {
+        async function generateQR() {
             const cls = document.getElementById('qrClass').value;
             const date = document.getElementById('qrDate').value;
             const expiry = parseInt(document.getElementById('qrExpiry').value) || 15;
@@ -1219,7 +1219,7 @@
         /* ----------------------------------------------------------------------------------------------------------------------------
            NEWS / ANNOUNCEMENTS
         ---------------------------------------------------------------------------------------------------------------------------- */
-        async function renderNewsClassPills() {
+        async async function renderNewsClassPills() {
             teacherData = await DB.getTeacherData(session.id);
             const container = document.getElementById('newsClassPills');
             const classes = teacherData.classes || [];
@@ -1272,7 +1272,7 @@
             renderAttachmentPreviews();
         }
 
-        async function postAnnouncement() {
+        async async function postAnnouncement() {
             const editor = document.getElementById('newsEditor');
             const caption = editor.innerHTML.trim();
 
@@ -1332,7 +1332,7 @@
             showToast('Announcement posted ');
         }
 
-        async function renderNewsFeed() {
+        async async function renderNewsFeed() {
             teacherData = await DB.getTeacherData(session.id);
             const feed = document.getElementById('newsFeed');
             const announcements = teacherData.announcements || [];
@@ -1390,7 +1390,7 @@
             a.click();
         }
 
-        async function deleteAnnouncement(id) {
+        async async function deleteAnnouncement(id) {
             teacherData = await DB.getTeacherData(session.id);
             teacherData.announcements = (teacherData.announcements || []).filter(a => a.id !== id);
             await DB.saveTeacherData(session.id, teacherData);
@@ -1401,7 +1401,7 @@
         /* ----------------------------------------------------------------------------------------------------------------------------
            REPORTS
         ---------------------------------------------------------------------------------------------------------------------------- */
-        async function renderReportPreview() {
+        async async function renderReportPreview() {
             teacherData = await DB.getTeacherData(session.id);
             const tbody = document.getElementById('reportPreviewBody');
             tbody.innerHTML = '';
@@ -1461,7 +1461,7 @@
             });
         }
 
-        async function exportCSV() {
+        async async function exportCSV() {
             teacherData = await DB.getTeacherData(session.id);
             const classes = teacherData.classes || [];
             const CLASS_NAMES = {};
@@ -1518,7 +1518,7 @@
             showToast('CSV exported ');
         }
 
-        function exportPDF() {
+        async function exportPDF() {
             var fromDate = document.getElementById('rptFrom').value;
             var toDate = document.getElementById('rptTo').value;
             if (!fromDate || !toDate || fromDate < '2026-04-12' || toDate > '2026-04-18' || fromDate > toDate) {
@@ -1619,7 +1619,7 @@
         /* ----------------------------------------------------------------------------------------------------------------------------
            CLASSES  Grid, Detail View, Add/Edit
         ---------------------------------------------------------------------------------------------------------------------------- */
-        async function renderClasses() {
+        async async function renderClasses() {
             const grid = document.getElementById('classesGrid');
             grid.innerHTML = '';
             teacherData = await DB.getTeacherData(session.id);
@@ -1716,7 +1716,7 @@
         }
 
         /*  Class Detail View  */
-        async function openClassDetail(classCode) {
+        async async function openClassDetail(classCode) {
             teacherData = await DB.getTeacherData(session.id);
             const cls = (teacherData.classes || []).find(c => c.code === classCode);
             if (!cls) return;
@@ -1824,7 +1824,7 @@
             document.getElementById('classModal').hidden = false;
         }
 
-        async function openEditClassModal(code) {
+        async async function openEditClassModal(code) {
             editingClassCode = code;
             teacherData = await DB.getTeacherData(session.id);
             const cls = (teacherData.classes || []).find(c => c.code === code);
@@ -1845,7 +1845,7 @@
                 document.getElementById('classModal').hidden = true;
         }
 
-        async function populateStudentPicker(selectedIds) {
+        async async function populateStudentPicker(selectedIds) {
             const grouped = await DB.getStudentsBySection();
             const sections = Object.keys(grouped).sort((a, b) => {
                 if (a === 'No Section') return 1;
@@ -1926,7 +1926,7 @@
             });
         }
 
-        function saveClass() {
+        async function saveClass() {
             const code = document.getElementById('classCode').value.trim().toUpperCase();
             const name = document.getElementById('className').value.trim();
             const startTime = document.getElementById('classStartTime').value;
@@ -2091,7 +2091,7 @@
         const CLASS_NAMES_MAP = { ENG: 'English', AP: 'Araling Panlipunan', MATH: 'Mathematics', SCI: 'Science' };
         const MCP_URL = 'https://attendease-messenger.onrender.com';
 
-        async function notifyGuardian(idx) {
+        async async function notifyGuardian(idx) {
             const s = currentSessionStudents[idx];
             const btn = document.getElementById('notify-btn-' + idx);
             if (!btn) return;
@@ -2143,7 +2143,7 @@
             }
         }
 
-        async function notifyAllAbsent() {
+        async async function notifyAllAbsent() {
             const targets = currentSessionStudents.filter(s => s.status === 'absent' || s.status === 'late');
             if (!targets.length) { showToast('No absent or late students to notify.'); return; }
             showToast('✓ Sending ' + targets.length + ' notification(s)');
@@ -2162,7 +2162,7 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        async async function signOut() {
+        async async async function signOut() {
             await DB.clearSession();
             window.location.href = 'index.html';
         }
@@ -2172,7 +2172,7 @@
         ------------------------------------------------------------------------------------------------------------------------ */
         let excuseClassFilter = 'ALL';
 
-        async function renderExcuseLetters() {
+        async async function renderExcuseLetters() {
             const td = await DB.getTeacherData(session.id);
             const allStudents = await DB.getAll().filter(u => u.role === 'student');
 
@@ -2259,7 +2259,7 @@
 
 
 
-                async function syncExcusesFromDB() {
+                async async function syncExcusesFromDB() {
                     if (!currentClassCode || !currentDate) return;
                     const fresh = await DB.getTeacherData(session.id);
                     const key = `${currentClassCode}_${currentDate}`;
@@ -2462,7 +2462,7 @@
                 /* ----------------------------------------------------------------------------------------------------------------------------
                    TEACHER PROFILE PICTURE
                 ---------------------------------------------------------------------------------------------------------------------------- */
-                async function loadTeacherProfilePic() {
+                async async function loadTeacherProfilePic() {
                     const td = await DB.getTeacherData(session.id);
                     const avatarImg = document.getElementById('tAvatarImg');
                     const avatarInitials = document.getElementById('tAvatar');
@@ -2478,7 +2478,7 @@
                     }
                 }
 
-                function openTeacherProfileModal() {
+                async function openTeacherProfileModal() {
                     const fullName = `${session.firstname} ${session.lastname}`.trim();
                     const initials = (session.firstname[0] + (session.lastname[0] || '')).toUpperCase();
                     const td = await DB.getTeacherData(session.id);
@@ -2513,7 +2513,7 @@
                     }
                 }
 
-                function handleTeacherProfilePicUpload(event) {
+                async function handleTeacherProfilePicUpload(event) {
                     const file = event.target.files[0];
                     if (!file) return;
                     if (file.size > 2 * 1024 * 1024) {
@@ -2522,7 +2522,7 @@
                         return;
                     }
                     const reader = new FileReader();
-                    reader.onload = ev => {
+                    reader.onload = async ev => {
                         try {
                             const td = await DB.getTeacherData(session.id);
                             td.profilePic = ev.target.result;
@@ -2550,7 +2550,7 @@
                     event.target.value = '';
                 }
 
-                async function removeTeacherProfilePic() {
+                async async function removeTeacherProfilePic() {
                     const td = await DB.getTeacherData(session.id);
                     delete td.profilePic;
                     await DB.saveTeacherData(session.id, td);
@@ -2592,7 +2592,7 @@
     <script>
         const RENDER_URL = 'https://attendease-messenger.onrender.com';
 
-        async function pollAttendanceFromServer() {
+        async async function pollAttendanceFromServer() {
             if (!session || !session.id) return;
             if (document.visibilityState !== 'visible') return;
 

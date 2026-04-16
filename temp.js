@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+PE html>
 <html lang="en">
 
 <head>
@@ -1042,12 +1042,4 @@
             }
         }
 
-    </script>
-
-    <!-- Notification panel -->
-    <div class="snotif-panel" id="sNotifPanel" hidden>
-        <div class="snotif-panel-header">Notifications</div>
-        <div class="snotif-list" id="sNotifList"></div>
-    </div>
-</body>
-</html>
+    
