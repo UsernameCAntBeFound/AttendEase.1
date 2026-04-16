@@ -741,7 +741,7 @@
                 navigate(lastPage);
             }
 
-            // Expose for cloud-sync.js Ã¢â‚¬â€ called when cloud pull detects changes
+            // Expose for cloud-sync.js ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â called when cloud pull detects changes
             window.renderDashboard = () => {
                 loadAttendanceSession(true); // forceRender=true bypasses hash check
             };
@@ -839,6 +839,7 @@
                 excuse: r.excuse_url || null,
                 excuseFileName: r.excuse_file_name || '',
                 excuseSubmittedAt: r.excuse_submitted_at || '',
+                location: r.location_lat && r.location_lng ? { lat: r.location_lat, lng: r.location_lng } : null
             }));
 
             const recordMap = {};
@@ -2177,7 +2178,7 @@
                 if (data.ok) {
                     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Sent';
                     btn.className = 'notify-btn sent';
-                    showToast('Ã¢Å“â€œ Notified! ' + data.message);
+                    showToast('ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Notified! ' + data.message);
                 } else {
                     btn.textContent = ' No PSID';
                     btn.className = 'notify-btn failed';
@@ -2195,7 +2196,7 @@
         async function notifyAllAbsent() {
             const targets = currentSessionStudents.filter(s => s.status === 'absent' || s.status === 'late');
             if (!targets.length) { showToast('No absent or late students to notify.'); return; }
-            showToast('Ã¢Å“â€œ Sending ' + targets.length + ' notification(s)');
+            showToast('ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Sending ' + targets.length + ' notification(s)');
             for (const s of targets) {
                 const idx = currentSessionStudents.indexOf(s);
                 await notifyGuardian(idx);
@@ -2383,7 +2384,7 @@
                     }
                 }
 
-                //  Real-time cross-tab listener (already registered in DOMContentLoaded Ã¢â‚¬â€ no duplicate needed)
+                //  Real-time cross-tab listener (already registered in DOMContentLoaded ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no duplicate needed)
 
                 //  Fallback poll every 2s for same-origin cross-tab and local file:// edge cases
                 setInterval(() => { syncExcusesFromDB(); }, 2000);
@@ -2637,7 +2638,7 @@
             style="max-width:90vw;max-height:80vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);cursor:default">
     </div>
 
-    <!-- Attendance polling Ã¢â‚¬â€ pulls directly from Render every 3s for cross-device sync -->
+    <!-- Attendance polling ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â pulls directly from Render every 3s for cross-device sync -->
     <script>
         const RENDER_URL = 'https://attendease-messenger.onrender.com';
 
@@ -2678,7 +2679,7 @@
                     renderStudentTable(filterStudentsData());
                 }
             } catch (err) {
-                // Server may be waking up Ã¢â‚¬â€ silent fail, retry next interval
+                // Server may be waking up ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â silent fail, retry next interval
             }
         }
 
