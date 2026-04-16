@@ -608,7 +608,7 @@
                 return;
             }
 
-            classes.forEach(cls => {
+            for (const cls of classes) {
                 let present = 0, absent = 0, late = 0, excused = 0, total = 0;
                 const absentRecords = [];
 
@@ -634,7 +634,7 @@
                 let absentSection = '';
                 if (absentRecords.length > 0) {
                     absentSection += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">';
-                    absentRecords.forEach(date => {
+                    for (const date of absentRecords) {
                         const existingExcuse = await DB.getStudentExcuse(session.uid, cls.code, date);
                         const hasExcuse = !!(existingExcuse && existingExcuse.dataUrl);
                         const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US',
@@ -645,7 +645,7 @@
                                     ? '<span style=\"font-size:11px;font-weight:600;color:var(--green);white-space:nowrap;\">\u2713 Submitted</span>'
                                     : `<button class="std-excuse-inline-btn" onclick="openStdExcuseModal('${cls.code}','${date}','${cls.name}')" style="font-size:11px;padding:4px 10px;white-space:nowrap;">Excuse Letter</button>`
                                 }</div>`;
-                    });
+                    }
                     absentSection += '</div>';
                 }
 
@@ -665,7 +665,7 @@
                     ${absentSection}
                 `;
                 container.appendChild(card);
-            });
+            }
         }
 
         /* â”€â”€ NAVIGATION â”€â”€ */

@@ -735,7 +735,8 @@
                 tbody.innerHTML = `<tr><td colspan="8" class="empty-row">No accounts found.</td></tr>`;
                 return;
             }
-            filtered.forEach((u, i) => {
+            for (let i = 0; i < filtered.length; i++) {
+                const u = filtered[i];
                 const isArchived = u.isArchived;
                 let actionsHTML = '';
                 if (isArchived) {
@@ -787,7 +788,7 @@
                     </div>
                 </td>
             </tr>`;
-            });
+            }
         }
 
         function filterByRole(role) {
