@@ -94,17 +94,23 @@
 
             // Small delay for UX feedback
             setTimeout(async () => {
-                const user = await DB.authenticate(identifier, password);
+                try {
+                    const user = await DB.authenticate(identifier, password);
 
-                if (!user) {
-                    showError('Invalid username / email or password. Please try again.');
+                    if (!user) {
+                        showError('Invalid username / email or password. Please try again.');
+                        btn.textContent = 'Sign in';
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    DB.setSession(user);
+                    redirectByRole(user.role);
+                } catch (err) {
+                    showError('System Error: ' + err.message);
                     btn.textContent = 'Sign in';
                     btn.disabled = false;
-                    return;
                 }
-
-                DB.setSession(user);
-                redirectByRole(user.role);
             }, 400);
         }
 
