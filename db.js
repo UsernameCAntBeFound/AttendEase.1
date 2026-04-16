@@ -1,7 +1,7 @@
 const SUPABASE_URL = 'https://ghcdhisbqjixzzvlmjxt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoY2RoaXNicWppeHp6dmxtanh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzkzMjAsImV4cCI6MjA5MTg1NTMyMH0.Xc4gWBRhcgY46HfLPnlqcu-ZUnQ5mPTsMtCyXKF2zSw';
 
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const SIMULATED_TIME = null;
 const LATE_GRACE_MINUTES = 15;
@@ -26,20 +26,20 @@ window.DB = {
     },
 
     async getAll() {
-        const { data } = await supabase.from('attendease_users').select('*').eq('is_archived', false);
+        const { data } = await supabaseClient.from('attendease_users').select('*').eq('is_archived', false);
         return data || [];
     },
 
     async getById(id) {
-        const { data } = await supabase.from('attendease_users').select('*').eq('id', id).single();
+        const { data } = await supabaseClient.from('attendease_users').select('*').eq('id', id).single();
         return data || null;
     },
 
     async authenticate(identifier, password) {
-        if (!supabase) throw new Error("Supabase SDK failed to load. Please check your internet connection or adblocker.");
+        if (!supabaseClient) throw new Error("Supabase SDK failed to load. Please check your internet connection or adblocker.");
 
         // Call the RPC that uses pgcrypto for secure hashing comparison
-        const { data, error } = await supabase.rpc('attendease_authenticate', {
+        const { data, error } = await supabaseClient.rpc('attendease_authenticate', {
             p_identifier: identifier,
             p_password: password
         });
@@ -51,7 +51,7 @@ window.DB = {
     },
 
     async usernameExists(username, excludeId = null) {
-        const { data } = await supabase.from('attendease_users').select('id').eq('username', username);
+        const { data } = await supabaseClient.from('attendease_users').select('id').eq('username', username);
         if (!data || data.length === 0) return false;
         return data.some(u => u.id !== excludeId);
     },
@@ -62,7 +62,7 @@ window.DB = {
         // We will insert via supabase. Password hashing logic defaults to crypted from client for prototype if needed, but we used pgcrypto on the backend.
         // We'll instruct user to utilize a secure creation endpoint. Here we'll do raw insert.
         // In PostgreSQL pgcrypto, we insert plain text into a secure RPC, but for simplicity of client creation:
-        const { data: newUser } = await supabase.from('attendease_users').insert([{
+        const { data: newUser } = await supabaseClient.from('attendease_users').insert([{
             role: data.role,
             firstname: data.firstname,
             lastname: data.lastname,
@@ -76,20 +76,20 @@ window.DB = {
     },
 
     async update(id, changes) {
-        const { data } = await supabase.from('attendease_users').update(changes).eq('id', id).select().single();
+        const { data } = await supabaseClient.from('attendease_users').update(changes).eq('id', id).select().single();
         return data;
     },
 
     async delete(id) {
-        await supabase.from('attendease_users').delete().eq('id', id);
+        await supabaseClient.from('attendease_users').delete().eq('id', id);
     },
 
     async archive(id) {
-        await supabase.from('attendease_users').update({ is_archived: true, archived_at: new Date() }).eq('id', id);
+        await supabaseClient.from('attendease_users').update({ is_archived: true, archived_at: new Date() }).eq('id', id);
     },
 
     async restore(id) {
-        await supabase.from('attendease_users').update({ is_archived: false, archived_at: null }).eq('id', id);
+        await supabaseClient.from('attendease_users').update({ is_archived: false, archived_at: null }).eq('id', id);
     },
 
     async generateUid(role) {
@@ -103,23 +103,23 @@ window.DB = {
     },
 
     async getStudentData(userId) {
-        const { data } = await supabase.from('attendease_student_data').select('*').eq('user_id', userId).single();
+        const { data } = await supabaseClient.from('attendease_student_data').select('*').eq('user_id', userId).single();
         return data || { section: '', attendance: { present: 0, absent: 0, late: 0 }, scanLog: [], excuseLetters: [] };
     },
 
     async saveStudentData(userId, data) {
-        await supabase.from('attendease_student_data').upsert({ user_id: userId, section: data.section });
+        await supabaseClient.from('attendease_student_data').upsert({ user_id: userId, section: data.section });
     },
 
     async getTeacherData(userId) {
-        const { data } = await supabase.from('attendease_teacher_classes').select('*').eq('teacher_id', userId);
+        const { data } = await supabaseClient.from('attendease_teacher_classes').select('*').eq('teacher_id', userId);
         return { classes: data || [], sessions: {}, announcements: [] };
     },
 
     async saveTeacherData(userId, data) {},
 
     async getSession_attendance(teacherId, classCode, date) {
-        const { data } = await supabase.from('attendease_sessions')
+        const { data } = await supabaseClient.from('attendease_sessions')
             .select('*')
             .eq('teacher_id', teacherId)
             .eq('class_code', classCode)
@@ -130,7 +130,7 @@ window.DB = {
     async saveSession_attendance(teacherId, classCode, date, records) {
         // Upsert all students in this session
         for(let r of records) {
-            await supabase.from('attendease_sessions').upsert({
+            await supabaseClient.from('attendease_sessions').upsert({
                 teacher_id: teacherId,
                 class_code: classCode,
                 session_date: date,
@@ -194,7 +194,7 @@ window.DB = {
         const currentTimeStr = this.formatTime12h(now);
         
         let record;
-        const { data } = await supabase.from('attendease_sessions')
+        const { data } = await supabaseClient.from('attendease_sessions')
             .select('*')
             .eq('class_code', qrPayload.cls)
             .eq('session_date', qrPayload.date)
@@ -226,7 +226,7 @@ window.DB = {
 
             const studentName = `${studentSession.firstname} ${studentSession.lastname}`.trim();
 
-            await supabase.from('attendease_sessions').upsert({
+            await supabaseClient.from('attendease_sessions').upsert({
                 teacher_id: teacher.id,
                 class_code: qrPayload.cls,
                 session_date: qrPayload.date,
@@ -238,7 +238,7 @@ window.DB = {
                 location_lng: options.location?.lng
             });
 
-            await supabase.from('attendease_student_scan_logs').insert([{
+            await supabaseClient.from('attendease_student_scan_logs').insert([{
                 student_id: studentSession.id,
                 scan_date: qrPayload.date,
                 class_code: qrPayload.cls,
@@ -254,7 +254,7 @@ window.DB = {
             if (!record || !record.time_in) return { success: false, message: 'Must time in first.' };
             if (record.time_out) return { success: false, message: `Already timed out at ${record.time_out}.` };
 
-            await supabase.from('attendease_sessions').upsert({
+            await supabaseClient.from('attendease_sessions').upsert({
                 id: record.id,
                 time_out: currentTimeStr
             });
@@ -266,7 +266,7 @@ window.DB = {
         const teacher = await this.getTeacherAccount();
         if (!teacher) return { success: false, message: 'No teacher found.' };
 
-        await supabase.from('attendease_sessions').upsert({
+        await supabaseClient.from('attendease_sessions').upsert({
             teacher_id: teacher.id,
             class_code: classCode,
             session_date: date,
@@ -282,7 +282,7 @@ window.DB = {
     },
 
     async getStudentExcuse(studentUid, classCode, date) {
-        const { data } = await supabase.from('attendease_sessions')
+        const { data } = await supabaseClient.from('attendease_sessions')
             .select('excuse_url, excuse_file_name, excuse_submitted_at')
             .eq('class_code', classCode)
             .eq('session_date', date)
