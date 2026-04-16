@@ -3181,3 +3181,89 @@ body::before {
         /* Retain original mobile constraints */
     }
 }
+/* ═══════════════════════════════════════════════════════
+   DARK MODE — matches teacher & admin dashboard
+═══════════════════════════════════════════════════════ */
+body.dark-mode {
+    --bg: #1a1c18;
+    --surface: rgba(30, 33, 27, 0.92);
+    --surface-solid: #1e211b;
+    --border: rgba(255, 255, 255, 0.10);
+    --border-subtle: rgba(255, 255, 255, 0.05);
+    --text: #e8e8d8;
+    --text-muted: #9a9a88;
+    background: #1a1c18 !important;
+    color: var(--text);
+}
+
+/* Override the light orb-gradient background */
+body.dark-mode::before {
+    background:
+        radial-gradient(ellipse 70% 60% at 15% 15%, rgba(80, 110, 50, 0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 55% at 85% 80%, rgba(40, 45, 35, 0.5) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 60% 5%, rgba(60, 80, 40, 0.15) 0%, transparent 55%),
+        linear-gradient(145deg, #1a1c18 0%, #1c1e1a 100%) !important;
+}
+
+/* Dim the animated orbs */
+body.dark-mode .orb-1 { background: radial-gradient(circle, rgba(60, 90, 35, 0.35) 0%, rgba(40, 60, 25, 0.12) 60%, transparent 100%) !important; }
+body.dark-mode .orb-2 { background: radial-gradient(circle, rgba(45, 50, 40, 0.4) 0%, rgba(35, 40, 30, 0.15) 60%, transparent 100%) !important; }
+body.dark-mode .orb-3 { background: radial-gradient(circle, rgba(50, 75, 35, 0.3) 0%, rgba(40, 60, 25, 0.1) 60%, transparent 100%) !important; }
+body.dark-mode .orb-4 { background: radial-gradient(circle, rgba(40, 55, 30, 0.2) 0%, rgba(50, 70, 35, 0.1) 60%, transparent 100%) !important; }
+
+/* Topbar & nav */
+body.dark-mode .topbar { background: rgba(22,24,20,0.97) !important; border-bottom-color: rgba(255,255,255,0.07) !important; }
+body.dark-mode .bottom-nav { background: rgba(22,24,20,0.97) !important; border-top-color: rgba(255,255,255,0.07) !important; }
+
+/* Sidebar (desktop) */
+body.dark-mode .sidebar-panel,
+body.dark-mode aside { background: rgba(22,24,20,0.97) !important; border-right-color: rgba(255,255,255,0.07) !important; }
+
+/* All card surfaces */
+body.dark-mode .profile-card,
+body.dark-mode .info-list,
+body.dark-mode .attendance-summary,
+body.dark-mode .all-classes-section,
+body.dark-mode .all-classes-toggle,
+body.dark-mode .class-card-body,
+body.dark-mode .std-excuse-box,
+body.dark-mode .std-excuse-overlay,
+body.dark-mode .scan-card,
+body.dark-mode .time-toggle,
+body.dark-mode .chip-wrap,
+body.dark-mode .result-toast {
+    background: rgba(30,33,27,0.96) !important;
+    border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* Main content area */
+body.dark-mode .main-content { background: transparent; }
+
+/* Glass / surface accents */
+body.dark-mode .nav-btn { color: var(--text-muted); }
+body.dark-mode .nav-btn.active { color: var(--brand); }
+
+/* Forms */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.12) !important; color: var(--text) !important; }
+
+/* Theme toggle button (bottom nav style) */
+.theme-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0;
+    background: none;
+    border: none;
+    font-family: inherit;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    flex-direction: column;
+}
+.theme-toggle-btn .theme-label { font-size: 10px; font-weight: 600; }
+.theme-toggle-btn:hover { color: var(--brand); }
+.icon-sun, .icon-moon { display: flex; align-items: center; }
+

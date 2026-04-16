@@ -84,6 +84,90 @@
     --purple: #8a9b6b;
 }
 
+/* ═══ DARK MODE ═══════════════════════════════════════════════ */
+body.dark-mode {
+    --bg: #1a1c18;
+    --surface: rgba(30, 33, 27, 0.92);
+    --surface-solid: #1e211b;
+    --border: rgba(255, 255, 255, 0.10);
+    --border-subtle: rgba(255, 255, 255, 0.05);
+    --text: #e8e8d8;
+    --text-muted: #9a9a88;
+    background: #1a1c18;
+    color: var(--text);
+}
+
+body.dark-mode::before {
+    background:
+        radial-gradient(ellipse 70% 60% at 15% 15%, rgba(80, 110, 50, 0.22) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 55% at 85% 80%, rgba(60, 55, 45, 0.35) 0%, transparent 60%),
+        linear-gradient(145deg, #1a1c18 0%, #1e1f19 100%);
+}
+
+body.dark-mode .sidebar,
+body.dark-mode aside {
+    background: rgba(22, 24, 20, 0.97);
+    border-right-color: rgba(255, 255, 255, 0.07);
+}
+
+body.dark-mode .topbar,
+body.dark-mode header.topbar {
+    background: rgba(22, 24, 20, 0.97);
+    border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+body.dark-mode .card,
+body.dark-mode .table-card,
+body.dark-mode .stat-card,
+body.dark-mode .modal-box,
+body.dark-mode .modal-box.admin-profile-modal-box {
+    background: rgba(30, 33, 27, 0.96);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .user-table thead {
+    background: rgba(28, 31, 25, 0.98);
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: var(--text) !important;
+}
+
+/* Dark mode toggle button */
+.theme-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 6px;
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(107, 107, 91, 0.1);
+    color: var(--brand);
+}
+
+.icon-sun, .icon-moon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
 html,
 body {
     height: 100%;
@@ -769,6 +853,14 @@ body.sidebar-collapsed .hamburger-desktop {
 .filter-bar {
     display: flex;
     align-items: center;
+}
+
+.create-acc-btn {
+    margin-left: auto;
+    padding: 7px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .role-tabs {
