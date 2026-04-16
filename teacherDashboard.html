@@ -443,11 +443,14 @@
             populateClassDropdowns();
             currentClassCode = document.getElementById('classSelect').value;
             currentDate = defDate;   // use today's date, not a hardcoded one
+            // Sequence matters: first populate, THEN load!
+            await populateClassDropdowns();
+            currentClassCode = document.getElementById('classSelect').value;
+            currentDate = defDate;
             loadAttendanceSession();
             renderReportPreview();
             renderClasses();
             renderNewsFeed();
-            // initAttendanceMap(); // Move to navigate logic to ensure visibility
 
             const lastPage = sessionStorage.getItem('teacher_last_page');
             if (lastPage && document.getElementById('page-' + lastPage)) {
@@ -475,7 +478,7 @@
 
         /** Populate all class dropdowns from teacher data */
         async function populateClassDropdowns() {
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             const classes = teacherData.classes || [];
 
             // Attendance class selector
@@ -509,7 +512,7 @@
                 loadAttendanceSession();
                 if (attendanceMap) setTimeout(() => attendanceMap.invalidateSize(), 100);
             }
-            if (page === 'classes') { teacherData = await DB.getTeacherData(session.id); renderClasses(); closeClassDetail(); }
+            if (page === 'classes') { teacherData = await DB.getTeacherData(session.id) || {}; renderClasses(); closeClassDetail(); }
             if (page === 'news') { renderNewsFeed(); renderNewsClassPills(); }
 
             // Persist last-visited tab so refresh stays on same page
@@ -532,7 +535,7 @@
         async function loadAttendanceSession(forceRender = false) {
             currentClassCode = document.getElementById('classSelect').value;
             currentDate = document.getElementById('sessionDate').value;
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             allPresentState = false;
             previousStatuses = [];
 
@@ -589,7 +592,7 @@
 
         async function saveAttendanceSession() {
             await DB.saveSession_attendance(session.id, currentClassCode, currentDate, currentSessionStudents);
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
         }
 
         function loadClass() { loadAttendanceSession(true); }
@@ -914,7 +917,7 @@
                 correctLevel: QRCode.CorrectLevel.H,
             });
 
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             const classObj = (teacherData.classes || []).find(c => c.code === cls);
             document.getElementById('qrMeta').innerHTML =
                 `<strong>${classObj ? classObj.name : cls}</strong> &bull; ${date}`;
@@ -950,7 +953,7 @@
            NEWS / ANNOUNCEMENTS
         ---------------------------------------------------------------------------------------------------------------------------- */
         async function renderNewsClassPills() {
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             const container = document.getElementById('newsClassPills');
             const classes = teacherData.classes || [];
             container.innerHTML = classes.map(c =>
@@ -1087,7 +1090,7 @@
                 return;
             }
 
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             if (!teacherData.announcements) teacherData.announcements = [];
 
             //  Prevent accidental double-post via rapid button clicks 
@@ -1135,7 +1138,7 @@
         }
 
         async function renderNewsFeed() {
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             const feed = document.getElementById('newsFeed');
             const announcements = teacherData.announcements || [];
 
@@ -1193,7 +1196,7 @@
         }
 
         async function deleteAnnouncement(id) {
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             teacherData.announcements = (teacherData.announcements || []).filter(a => a.id !== id);
             await DB.saveTeacherData(session.id, teacherData);
             renderNewsFeed();
@@ -1204,7 +1207,7 @@
            REPORTS
         ---------------------------------------------------------------------------------------------------------------------------- */
         async function renderReportPreview() {
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             const tbody = document.getElementById('reportPreviewBody');
             tbody.innerHTML = '';
 
@@ -1276,7 +1279,7 @@
         }
 
         async function exportCSV() {
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             const classes = teacherData.classes || [];
             const CLASS_NAMES = {};
             classes.forEach(c => { CLASS_NAMES[c.code] = c.name; });
@@ -1346,7 +1349,7 @@
             var jsPDF = window.jspdf.jsPDF;
             var doc = new jsPDF();
 
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             const classes = teacherData.classes || [];
             const CLASS_NAMES = {};
             classes.forEach(c => { CLASS_NAMES[c.code] = c.name; });
@@ -1441,7 +1444,7 @@
         async function renderClasses() {
             const grid = document.getElementById('classesGrid');
             grid.innerHTML = '';
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             const classes = teacherData.classes || [];
 
             if (!classes.length) {
@@ -1544,7 +1547,7 @@
 
         /*  Class Detail View  */
         async function openClassDetail(classCode) {
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             const cls = (teacherData.classes || []).find(c => c.code === classCode);
             if (!cls) return;
 
@@ -1661,7 +1664,7 @@
 
         async function openEditClassModal(code) {
             editingClassCode = code;
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             const cls = (teacherData.classes || []).find(c => c.code === code);
             if (!cls) return;
 
@@ -1790,7 +1793,7 @@
                 scheduleDisplay = `${fmt(startTime)}  ${fmt(endTime)}`;
             }
 
-            teacherData = await DB.getTeacherData(session.id);
+            teacherData = await DB.getTeacherData(session.id) || {};
             if (!teacherData.classes) teacherData.classes = [];
 
             if (editingClassCode) {
@@ -1828,7 +1831,7 @@
             const teacherFullName = `${session.firstname} ${session.lastname}`.trim();
             if (editingClassCode) {
                 // Find students who weren't enrolled before but are now
-                const oldClass = ((await DB.getTeacherData(session.id)).classes || []).find(c => c.code === editingClassCode);
+                const oldClass = ((await DB.getTeacherData(session.id) || {}).classes || []).find(c => c.code === editingClassCode);
                 const oldEnrolled = new Set((oldClass ? oldClass.enrolledStudents : []) || []);
                 selectedStudents.forEach(studentId => {
                     if (!oldEnrolled.has(studentId)) {
@@ -2008,7 +2011,7 @@
         let excuseClassFilter = 'ALL';
 
         async function renderExcuseLetters() {
-            const td = await DB.getTeacherData(session.id);
+            const td = await DB.getTeacherData(session.id) || {};
             const allStudents = (await DB.getAll()).filter(u => u.role === 'student');
 
             // Collect all submitted excuse letters from all sessions

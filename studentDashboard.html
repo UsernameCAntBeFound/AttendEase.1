@@ -505,17 +505,22 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             await window.initCloudDb();
-            loadProfile();
+            try {
+                await loadProfile();
+            } catch (e) { console.warn('Profile load failed'); }
+            
             allClassesOpen = false;
-            document.getElementById('allClassesContent').classList.remove('open');
-            document.getElementById('chevronIcon').classList.remove('rotated');
+            if (document.getElementById('allClassesContent')) document.getElementById('allClassesContent').classList.remove('open');
+            if (document.getElementById('chevronIcon')) document.getElementById('chevronIcon').classList.remove('rotated');
             
             const searchContainer = document.querySelector('.topbar-search');
             if (searchContainer) searchContainer.style.display = 'none'; 
             
             const lastPage = sessionStorage.getItem('student_last_page');
             if (lastPage && document.getElementById('page-' + lastPage)) {
-                navigate(lastPage);
+                 navigate(lastPage);
+            } else {
+                 navigate('scan');
             }
             renderStudentNotifPanel();
             syncStudentNotifications();
@@ -1183,13 +1188,13 @@
                     card.innerHTML = `
                         <div class="news-card-header" style="display:flex;justify-content:space-between;align-items:center;">
                             <div class="news-author">
-                                <div class="author-avatar">${s.class_name.charAt(0)}</div>
+                                <div class="author-avatar">${(s.class_name || 'C').charAt(0)}</div>
                                 <div class="author-info">
-                                    <div class="author-name">${s.class_name}</div>
+                                    <div class="author-name">${s.class_name || 'General'}</div>
                                     <div class="post-time">${new Date(s.created_at).toLocaleString()}</div>
                                 </div>
                             </div>
-                            <div style="font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;background:rgba(0,0,0,0.05)">${s.status.toUpperCase()}</div>
+                            <div style="font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;background:rgba(0,0,0,0.05)">${(s.status || '').toUpperCase()}</div>
                         </div>
                         <div class="news-card-body" style="padding:12px 0">
                             <p style="font-size:14px;margin-bottom:8px">${s.remarks || 'No message provided'}</p>
@@ -1250,22 +1255,22 @@
             if (!newsExcuseFileData) return showToast('Please attach a document or photo.');
 
             try {
-                showToast('Submitting...', 0);
+                showToast('Submitting...');
                 const sd = await DB.getStudentData(session.uid);
-                const { error } = await supabase
+                const { error } = await window.supabase
                     .from('attendease_scans')
                     .insert([{
                         student_id: session.uid,
                         student_name: `${session.firstname} ${session.lastname}`,
-                        id_number: session.id_number,
-                        section: sd.section,
+                        id_number: session.uid, // Corrected from session.id_number
+                        section: sd.section || '',
                         class_code: classCode,
                         class_name: className,
                         session_date: new Date().toISOString().split('T')[0],
                         status: 'excused',
                         excuse_content: newsExcuseFileData.data,
                         excuse_type: newsExcuseFileData.type,
-                        remarks: remarks
+                        remarks: remarks || ''
                     }]);
 
                 if (error) throw error;
