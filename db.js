@@ -1,7 +1,7 @@
 const SUPABASE_URL = 'https://ghcdhisbqjixzzvlmjxt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoY2RoaXNicWppeHp6dmxtanh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzkzMjAsImV4cCI6MjA5MTg1NTMyMH0.Xc4gWBRhcgY46HfLPnlqcu-ZUnQ5mPTsMtCyXKF2zSw';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const SIMULATED_TIME = null;
 const LATE_GRACE_MINUTES = 15;
@@ -36,12 +36,17 @@ const DB = {
     },
 
     async authenticate(identifier, password) {
+        if (!supabase) throw new Error("Supabase SDK failed to load. Please check your internet connection or adblocker.");
+
         // Call the RPC that uses pgcrypto for secure hashing comparison
         const { data, error } = await supabase.rpc('attendease_authenticate', {
             p_identifier: identifier,
             p_password: password
         });
-        if (error || !data) return null;
+        
+        if (error) throw new Error(error.message);
+        if (!data) return null;
+        
         return data; // returns json user object
     },
 
