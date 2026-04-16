@@ -17,7 +17,7 @@ window.initCloudDb = async function() {
     // We no longer need to pull state from legacy sync url since we use RDBMS directly!
 };
 
-const DB = {
+window.DB = {
     schedules: CLASS_SCHEDULES,
     lateGrace: LATE_GRACE_MINUTES,
 
