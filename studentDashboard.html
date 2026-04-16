@@ -939,7 +939,7 @@
         }
 
         function setNewsFilter(code) { newsFilterClass = code; loadStudentNews(); }
-        async function signOut() { stopCamera(); await DB.clearSession(); window.location.href = 'index.html'; }
+        async async function signOut() { stopCamera(); await DB.clearSession(); window.location.href = 'index.html'; }
 
         function openStdExcuseModal(classCode, date, className) {
             stdExcuseClassCode = classCode; stdExcuseDate = date;
@@ -958,7 +958,7 @@
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = ev => {
+            reader.onload = async ev => {
                 stdExcuseDataUrl = ev.target.result;
                 stdExcuseFileName = file.name;
                 document.getElementById('stdUploadPrompt').hidden = true;

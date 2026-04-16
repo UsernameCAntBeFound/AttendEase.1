@@ -1219,7 +1219,7 @@
         /* ----------------------------------------------------------------------------------------------------------------------------
            NEWS / ANNOUNCEMENTS
         ---------------------------------------------------------------------------------------------------------------------------- */
-        function renderNewsClassPills() {
+        async function renderNewsClassPills() {
             teacherData = await DB.getTeacherData(session.id);
             const container = document.getElementById('newsClassPills');
             const classes = teacherData.classes || [];
@@ -1242,7 +1242,7 @@
             const files = Array.from(event.target.files);
             files.forEach(file => {
                 const reader = new FileReader();
-                reader.onload = ev => {
+                reader.onload = async ev => {
                     newsAttachments.push({
                         name: file.name,
                         dataUrl: ev.target.result,
@@ -1272,7 +1272,7 @@
             renderAttachmentPreviews();
         }
 
-        function postAnnouncement() {
+        async function postAnnouncement() {
             const editor = document.getElementById('newsEditor');
             const caption = editor.innerHTML.trim();
 
@@ -1332,7 +1332,7 @@
             showToast('Announcement posted ');
         }
 
-        function renderNewsFeed() {
+        async function renderNewsFeed() {
             teacherData = await DB.getTeacherData(session.id);
             const feed = document.getElementById('newsFeed');
             const announcements = teacherData.announcements || [];
@@ -1390,7 +1390,7 @@
             a.click();
         }
 
-        function deleteAnnouncement(id) {
+        async function deleteAnnouncement(id) {
             teacherData = await DB.getTeacherData(session.id);
             teacherData.announcements = (teacherData.announcements || []).filter(a => a.id !== id);
             await DB.saveTeacherData(session.id, teacherData);
@@ -1401,7 +1401,7 @@
         /* ----------------------------------------------------------------------------------------------------------------------------
            REPORTS
         ---------------------------------------------------------------------------------------------------------------------------- */
-        function renderReportPreview() {
+        async function renderReportPreview() {
             teacherData = await DB.getTeacherData(session.id);
             const tbody = document.getElementById('reportPreviewBody');
             tbody.innerHTML = '';
@@ -1461,7 +1461,7 @@
             });
         }
 
-        function exportCSV() {
+        async function exportCSV() {
             teacherData = await DB.getTeacherData(session.id);
             const classes = teacherData.classes || [];
             const CLASS_NAMES = {};
@@ -1716,7 +1716,7 @@
         }
 
         /*  Class Detail View  */
-        function openClassDetail(classCode) {
+        async function openClassDetail(classCode) {
             teacherData = await DB.getTeacherData(session.id);
             const cls = (teacherData.classes || []).find(c => c.code === classCode);
             if (!cls) return;
@@ -1824,7 +1824,7 @@
             document.getElementById('classModal').hidden = false;
         }
 
-        function openEditClassModal(code) {
+        async function openEditClassModal(code) {
             editingClassCode = code;
             teacherData = await DB.getTeacherData(session.id);
             const cls = (teacherData.classes || []).find(c => c.code === code);
@@ -1845,7 +1845,7 @@
                 document.getElementById('classModal').hidden = true;
         }
 
-        function populateStudentPicker(selectedIds) {
+        async function populateStudentPicker(selectedIds) {
             const grouped = await DB.getStudentsBySection();
             const sections = Object.keys(grouped).sort((a, b) => {
                 if (a === 'No Section') return 1;
@@ -2162,7 +2162,7 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        async function signOut() {
+        async async function signOut() {
             await DB.clearSession();
             window.location.href = 'index.html';
         }
@@ -2172,7 +2172,7 @@
         ------------------------------------------------------------------------------------------------------------------------ */
         let excuseClassFilter = 'ALL';
 
-        function renderExcuseLetters() {
+        async function renderExcuseLetters() {
             const td = await DB.getTeacherData(session.id);
             const allStudents = await DB.getAll().filter(u => u.role === 'student');
 
@@ -2259,7 +2259,7 @@
 
 
 
-                function syncExcusesFromDB() {
+                async function syncExcusesFromDB() {
                     if (!currentClassCode || !currentDate) return;
                     const fresh = await DB.getTeacherData(session.id);
                     const key = `${currentClassCode}_${currentDate}`;
@@ -2462,7 +2462,7 @@
                 /* ----------------------------------------------------------------------------------------------------------------------------
                    TEACHER PROFILE PICTURE
                 ---------------------------------------------------------------------------------------------------------------------------- */
-                function loadTeacherProfilePic() {
+                async function loadTeacherProfilePic() {
                     const td = await DB.getTeacherData(session.id);
                     const avatarImg = document.getElementById('tAvatarImg');
                     const avatarInitials = document.getElementById('tAvatar');
@@ -2550,7 +2550,7 @@
                     event.target.value = '';
                 }
 
-                function removeTeacherProfilePic() {
+                async function removeTeacherProfilePic() {
                     const td = await DB.getTeacherData(session.id);
                     delete td.profilePic;
                     await DB.saveTeacherData(session.id, td);
