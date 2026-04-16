@@ -666,7 +666,7 @@
             document.body.classList.toggle('sidebar-collapsed');
         }
 
-        function signOut() {
+        async function signOut() {
             await DB.clearSession();
             window.location.href = 'index.html';
         }
@@ -674,7 +674,7 @@
         /* ═══════════════════════════════
            DASHBOARD
         ═══════════════════════════════ */
-        function refreshDashboard() {
+        async function refreshDashboard() {
             users = await DB.getAll().filter(u => u.id !== adminSession.id);
             const activeUsers = users.filter(u => !u.isArchived);
             const students = activeUsers.filter(u => u.role === 'student');
@@ -689,7 +689,7 @@
 
             const list = document.getElementById('recentList');
             const last5 = [...activeUsers].reverse().slice(0, 5);
-            list.innerHTML = last5.map(u => {
+            const htmlArr = await Promise.all(last5.map(async u => {
                 let extraData = null;
                 if (u.role === 'student') extraData = await DB.getStudentData(u.id);
                 if (u.role === 'teacher') extraData = await DB.getTeacherData(u.id);
@@ -705,7 +705,7 @@
                 </div>
                 <span class="role-badge ${u.role}">${capitalize(u.role)}</span>
             </div>
-        `}).join('');
+        `})); list.innerHTML = htmlArr.join('');
         }
 
         function animateCount(id, target) {
@@ -722,7 +722,7 @@
         /* ═══════════════════════════════
            USER TABLE
         ═══════════════════════════════ */
-        function renderUserTable(list) {
+        async function renderUserTable(list) {
             const tbody = document.getElementById('userTableBody');
             let filtered = currentRoleFilter === 'archived'
                 ? list.filter(u => u.isArchived)
@@ -816,7 +816,7 @@
         /* ═══════════════════════════════
            EDIT MODAL
         ═══════════════════════════════ */
-        function openEditModal(id) {
+        async function openEditModal(id) {
             const u = users.find(u => u.id === id);
             if (!u) return;
             editingUserId = id;
@@ -856,7 +856,7 @@
             });
         }
 
-        function saveEdit() {
+        async function saveEdit() {
             const u = users.find(u => u.id === editingUserId);
             if (!u) return;
 
@@ -923,7 +923,7 @@
                 document.getElementById('deleteModal').hidden = true;
         }
 
-        function confirmDelete() {
+        async function confirmDelete() {
             if (modalActionType === 'delete') {
                 await DB.delete(deletingUserId);
                 showToast('Account permanently deleted ✓');
@@ -937,7 +937,7 @@
             refreshDashboard();
         }
 
-        function restoreAccount(id) {
+        async function restoreAccount(id) {
             await DB.restore(id);
             users = await DB.getAll().filter(u => u.id !== adminSession.id);
             renderUserTable(filteredSearch());
@@ -948,7 +948,7 @@
         /* ═══════════════════════════════
            CREATE ACCOUNT
         ═══════════════════════════════ */
-        function setRole(role) {
+        async function setRole(role) {
             activeRole = role;
             document.getElementById('role-student').classList.toggle('active', role === 'student');
             document.getElementById('role-teacher').classList.toggle('active', role === 'teacher');
@@ -978,7 +978,7 @@
             document.getElementById(id).addEventListener('input', updatePreview);
         });
 
-        function createAccount() {
+        async function createAccount() {
             const fn = document.getElementById('cf-firstname').value.trim();
             const ln = document.getElementById('cf-lastname').value.trim();
             const uid = document.getElementById('cf-uid').value.trim();
@@ -1021,7 +1021,7 @@
             refreshDashboard();
         }
 
-        function resetCreateForm() {
+        async function resetCreateForm() {
             ['cf-firstname', 'cf-lastname', 'cf-email', 'cf-username', 'cf-password', 'cf-confirm'].forEach(id => {
                 document.getElementById(id).value = '';
             });
